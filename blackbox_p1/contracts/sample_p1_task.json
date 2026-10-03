@@ -1,0 +1,6 @@
+{
+  "template": "policy_lookup",
+  "task_seed": 9001,
+  "prompt": "A customer purchased a laptop 10 days ago. Check the refund policy and decide whether they are eligible.",
+  "expected_answer": "Refund not eligible"
+}

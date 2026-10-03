@@ -1,0 +1,922 @@
+{
+  "original": {
+    "run_id": "llm_ce27dd1816c0",
+    "task": {
+      "template": "policy_lookup",
+      "task_seed": 9001,
+      "prompt": "A customer purchased a laptop 10 days ago. Check the refund policy and decide whether they are eligible.",
+      "expected_answer": "Refund not eligible"
+    },
+    "status": "failed",
+    "final_answer": "Refund eligible",
+    "agent_kind": "llm",
+    "steps": [
+      {
+        "step_idx": 0,
+        "type": "plan",
+        "name": "planner",
+        "prompt": "You are the planning stage of an observable AI agent.\nTask: A customer purchased a laptop 10 days ago. Check the refund policy and decide whether they are eligible.\nReturn JSON with exactly two fields: action and query.\nThe required action is search_docs and the query should ask for the 7-day refund policy.\nDo not make the final decision here.",
+        "input": {
+          "prompt": "A customer purchased a laptop 10 days ago. Check the refund policy and decide whether they are eligible."
+        },
+        "output": {
+          "action": "search_docs",
+          "query": "7-day refund policy"
+        },
+        "error_flag": false,
+        "error_msg": null,
+        "latency_ms": 1148,
+        "tokens": 100,
+        "reads": [],
+        "writes": [
+          "next_action",
+          "query"
+        ],
+        "state_after": {
+          "next_action": "search_docs",
+          "query": "7-day refund policy"
+        },
+        "pre_state_hash": "bf21a9e8fbc5a3846fb05b4fa0859e0917b2202f",
+        "cache_key": "f16f937780862caee33a1974abe364c39f3053bd"
+      },
+      {
+        "step_idx": 1,
+        "type": "retrieval",
+        "name": "search_docs",
+        "prompt": null,
+        "input": {
+          "query": "refund within 7 days"
+        },
+        "output": {
+          "query": "refund within 7 days",
+          "documents": [
+            {
+              "title": "Refund Policy",
+              "text": "Refunds are available within 30 days of purchase subject to the applicable conditions."
+            }
+          ],
+          "source": "injected_wrong_retrieval"
+        },
+        "error_flag": false,
+        "error_msg": null,
+        "latency_ms": 8,
+        "tokens": 0,
+        "reads": [
+          {
+            "step_idx": 0,
+            "key": "query"
+          }
+        ],
+        "writes": [
+          "retrieved_docs"
+        ],
+        "state_after": {
+          "next_action": "search_docs",
+          "query": "7-day refund policy",
+          "retrieved_docs": [
+            {
+              "title": "Refund Policy",
+              "text": "Refunds are available within 30 days of purchase subject to the applicable conditions."
+            }
+          ]
+        },
+        "pre_state_hash": "0b5f0f89212901ee689d9778daf147f4d3638550",
+        "cache_key": "87ad78e7969008dd233b0f95bc2c67cb1b77a411"
+      },
+      {
+        "step_idx": 2,
+        "type": "parse",
+        "name": "parser",
+        "prompt": "Extract the refund duration from the retrieved policy text.\nCustomer task: A customer purchased a laptop 10 days ago. Check the refund policy and decide whether they are eligible.\nRetrieved documents:\n[{\"title\": \"Refund Policy\", \"text\": \"Refunds are available within 30 days of purchase subject to the applicable conditions.\"}]\nReturn JSON with exactly one field: days (integer).\nDo not decide eligibility yet.",
+        "input": {
+          "documents": [
+            {
+              "title": "Refund Policy",
+              "text": "Refunds are available within 30 days of purchase subject to the applicable conditions."
+            }
+          ]
+        },
+        "output": {
+          "days": 30
+        },
+        "error_flag": false,
+        "error_msg": null,
+        "latency_ms": 891,
+        "tokens": 105,
+        "reads": [
+          {
+            "step_idx": 1,
+            "key": "retrieved_docs"
+          }
+        ],
+        "writes": [
+          "refund_days"
+        ],
+        "state_after": {
+          "next_action": "search_docs",
+          "query": "7-day refund policy",
+          "retrieved_docs": [
+            {
+              "title": "Refund Policy",
+              "text": "Refunds are available within 30 days of purchase subject to the applicable conditions."
+            }
+          ],
+          "refund_days": 30
+        },
+        "pre_state_hash": "b78dc827cd9cd6a82783f2326471a7ba8e522f27",
+        "cache_key": "f3ec40fe9ef018697aab65193f6e5d7c56468f50"
+      },
+      {
+        "step_idx": 3,
+        "type": "llm_call",
+        "name": "reasoner",
+        "prompt": "You are the decision stage of an AI agent.\nCustomer purchased the laptop 10 days ago.\nUse ONLY refund_days from the state below as the policy limit.\nState: {\"next_action\": \"search_docs\", \"query\": \"7-day refund policy\", \"retrieved_docs\": [{\"title\": \"Refund Policy\", \"text\": \"Refunds are available within 30 days of purchase subject to the applicable conditions.\"}], \"refund_days\": 30}\nReturn JSON with exactly two fields: refund_days and eligible.\neligible must be true only when 10 is less than or equal to refund_days.",
+        "input": {
+          "state": {
+            "next_action": "search_docs",
+            "query": "7-day refund policy",
+            "retrieved_docs": [
+              {
+                "title": "Refund Policy",
+                "text": "Refunds are available within 30 days of purchase subject to the applicable conditions."
+              }
+            ],
+            "refund_days": 30
+          }
+        },
+        "output": {
+          "refund_days": 30,
+          "eligible": true
+        },
+        "error_flag": false,
+        "error_msg": null,
+        "latency_ms": 824,
+        "tokens": 138,
+        "reads": [
+          {
+            "step_idx": 2,
+            "key": "refund_days"
+          }
+        ],
+        "writes": [
+          "eligible"
+        ],
+        "state_after": {
+          "next_action": "search_docs",
+          "query": "7-day refund policy",
+          "retrieved_docs": [
+            {
+              "title": "Refund Policy",
+              "text": "Refunds are available within 30 days of purchase subject to the applicable conditions."
+            }
+          ],
+          "refund_days": 30,
+          "eligible": true
+        },
+        "pre_state_hash": "fea2a3c6bed9289c50c811dea952500faf1fc119",
+        "cache_key": "99ac0229a32eef6f2afd7afd86b9f9644a670006"
+      },
+      {
+        "step_idx": 4,
+        "type": "final_answer",
+        "name": "answer",
+        "prompt": "Return the final answer for the customer.\nEligibility state: {\"next_action\": \"search_docs\", \"query\": \"7-day refund policy\", \"retrieved_docs\": [{\"title\": \"Refund Policy\", \"text\": \"Refunds are available within 30 days of purchase subject to the applicable conditions.\"}], \"refund_days\": 30, \"eligible\": true}\nReturn JSON with exactly one field, answer.\nUse exactly one of these strings:\n- Refund eligible\n- Refund not eligible",
+        "input": {
+          "state": {
+            "next_action": "search_docs",
+            "query": "7-day refund policy",
+            "retrieved_docs": [
+              {
+                "title": "Refund Policy",
+                "text": "Refunds are available within 30 days of purchase subject to the applicable conditions."
+              }
+            ],
+            "refund_days": 30,
+            "eligible": true
+          }
+        },
+        "output": {
+          "answer": "Refund eligible"
+        },
+        "error_flag": false,
+        "error_msg": null,
+        "latency_ms": 764,
+        "tokens": 113,
+        "reads": [
+          {
+            "step_idx": 3,
+            "key": "eligible"
+          }
+        ],
+        "writes": [],
+        "state_after": {
+          "next_action": "search_docs",
+          "query": "7-day refund policy",
+          "retrieved_docs": [
+            {
+              "title": "Refund Policy",
+              "text": "Refunds are available within 30 days of purchase subject to the applicable conditions."
+            }
+          ],
+          "refund_days": 30,
+          "eligible": true
+        },
+        "pre_state_hash": "34383db753f56722376bfd16418ec1a7774df788",
+        "cache_key": "e633e64e3a1c27ad97648162f06a2286d16c299c"
+      }
+    ],
+    "fault": {
+      "injected": true,
+      "step_idx": 1,
+      "fault_type": "wrong_retrieval",
+      "description": "A plausible but incorrect refund-policy document is returned."
+    },
+    "lineage": {
+      "parent_run_id": null,
+      "forked_from_step": null,
+      "patch": null
+    },
+    "meta": {
+      "split": "p1",
+      "is_decoy": false,
+      "model": "gemini-3.5-flash-lite",
+      "temperature": null
+    }
+  },
+  "diagnosis": {
+    "run_id": "llm_ce27dd1816c0",
+    "ranking": [
+      {
+        "step_idx": 1,
+        "blame_score": 0.03709036856889725,
+        "relative": 0.9520399570465088
+      },
+      {
+        "step_idx": 0,
+        "blame_score": 0.001112744095735252,
+        "relative": 0.028562046587467194
+      },
+      {
+        "step_idx": 3,
+        "blame_score": 0.00035964095150120556,
+        "relative": 0.009231306612491608
+      },
+      {
+        "step_idx": 2,
+        "blame_score": 0.00020036658679600805,
+        "relative": 0.005143033340573311
+      },
+      {
+        "step_idx": 4,
+        "blame_score": 0.00019571909797377884,
+        "relative": 0.0050237406976521015
+      }
+    ],
+    "suspect_step_idx": 1,
+    "evidence": [],
+    "healthy_reference": {
+      "run_id": "run_02e0fac064ba",
+      "step_idx": 1,
+      "output": {
+        "documents": [
+          {
+            "text": "Refunds are available within 7 days of purchase subject to the applicable conditions.",
+            "title": "Refund Policy"
+          }
+        ],
+        "query": "refund within 7 days"
+      }
+    },
+    "causal_chain": [
+      1,
+      2,
+      3,
+      4
+    ]
+  },
+  "replay_checkpoint_source": "ml_suspect",
+  "replay": {
+    "new_run_id": "llm_ce27dd1816c0_r0865f7_21990b692196",
+    "forked_from_step": 1,
+    "prefix_reused": 1,
+    "steps_rerun": 4,
+    "cache_hits": 1,
+    "original_outcome": "failed",
+    "new_outcome": "success",
+    "replay_mode": "live",
+    "patch": {
+      "target": "output",
+      "value": {
+        "query": "refund within 7 days",
+        "documents": [
+          {
+            "title": "Refund Policy",
+            "text": "Refunds are available within 7 days of purchase subject to the applicable conditions."
+          }
+        ],
+        "source": "replay_patch"
+      }
+    }
+  },
+  "fixed_run": {
+    "run_id": "llm_ce27dd1816c0_r0865f7_21990b692196",
+    "task": {
+      "template": "policy_lookup",
+      "task_seed": 9001,
+      "prompt": "A customer purchased a laptop 10 days ago. Check the refund policy and decide whether they are eligible.",
+      "expected_answer": "Refund not eligible"
+    },
+    "status": "success",
+    "final_answer": "Refund not eligible",
+    "agent_kind": "llm",
+    "steps": [
+      {
+        "step_idx": 0,
+        "type": "plan",
+        "name": "planner",
+        "prompt": "You are the planning stage of an observable AI agent.\nTask: A customer purchased a laptop 10 days ago. Check the refund policy and decide whether they are eligible.\nReturn JSON with exactly two fields: action and query.\nThe required action is search_docs and the query should ask for the 7-day refund policy.\nDo not make the final decision here.",
+        "input": {
+          "prompt": "A customer purchased a laptop 10 days ago. Check the refund policy and decide whether they are eligible."
+        },
+        "output": {
+          "action": "search_docs",
+          "query": "7-day refund policy"
+        },
+        "error_flag": false,
+        "error_msg": null,
+        "latency_ms": 1148,
+        "tokens": 100,
+        "reads": [],
+        "writes": [
+          "next_action",
+          "query"
+        ],
+        "state_after": {
+          "next_action": "search_docs",
+          "query": "7-day refund policy"
+        },
+        "pre_state_hash": "bf21a9e8fbc5a3846fb05b4fa0859e0917b2202f",
+        "cache_key": "f16f937780862caee33a1974abe364c39f3053bd"
+      },
+      {
+        "step_idx": 1,
+        "type": "retrieval",
+        "name": "search_docs",
+        "prompt": null,
+        "input": {
+          "query": "refund within 7 days"
+        },
+        "output": {
+          "query": "refund within 7 days",
+          "documents": [
+            {
+              "title": "Refund Policy",
+              "text": "Refunds are available within 7 days of purchase subject to the applicable conditions."
+            }
+          ],
+          "source": "replay_patch"
+        },
+        "error_flag": false,
+        "error_msg": null,
+        "latency_ms": 8,
+        "tokens": 0,
+        "reads": [
+          {
+            "step_idx": 0,
+            "key": "query"
+          }
+        ],
+        "writes": [
+          "retrieved_docs"
+        ],
+        "state_after": {
+          "next_action": "search_docs",
+          "query": "7-day refund policy",
+          "retrieved_docs": [
+            {
+              "title": "Refund Policy",
+              "text": "Refunds are available within 7 days of purchase subject to the applicable conditions."
+            }
+          ]
+        },
+        "pre_state_hash": "0b5f0f89212901ee689d9778daf147f4d3638550",
+        "cache_key": "87ad78e7969008dd233b0f95bc2c67cb1b77a411"
+      },
+      {
+        "step_idx": 2,
+        "type": "parse",
+        "name": "parser",
+        "prompt": "Extract the refund duration from the retrieved policy text.\nCustomer task: A customer purchased a laptop 10 days ago. Check the refund policy and decide whether they are eligible.\nRetrieved documents:\n[{\"title\": \"Refund Policy\", \"text\": \"Refunds are available within 7 days of purchase subject to the applicable conditions.\"}]\nReturn JSON with exactly one field: days (integer).\nDo not decide eligibility yet.",
+        "input": {
+          "documents": [
+            {
+              "title": "Refund Policy",
+              "text": "Refunds are available within 7 days of purchase subject to the applicable conditions."
+            }
+          ]
+        },
+        "output": {
+          "days": 7
+        },
+        "error_flag": false,
+        "error_msg": null,
+        "latency_ms": 816,
+        "tokens": 105,
+        "reads": [
+          {
+            "step_idx": 1,
+            "key": "retrieved_docs"
+          }
+        ],
+        "writes": [
+          "refund_days"
+        ],
+        "state_after": {
+          "next_action": "search_docs",
+          "query": "7-day refund policy",
+          "retrieved_docs": [
+            {
+              "title": "Refund Policy",
+              "text": "Refunds are available within 7 days of purchase subject to the applicable conditions."
+            }
+          ],
+          "refund_days": 7
+        },
+        "pre_state_hash": "b90dc20a5d05b8f8d7b9bf5109fce52123bc9aa3",
+        "cache_key": "71f219704a14c45f239c5f74afcf7d18fd37cffb"
+      },
+      {
+        "step_idx": 3,
+        "type": "llm_call",
+        "name": "reasoner",
+        "prompt": "You are the decision stage of an AI agent.\nCustomer purchased the laptop 10 days ago.\nUse ONLY refund_days from the state below as the policy limit.\nState: {\"next_action\": \"search_docs\", \"query\": \"7-day refund policy\", \"retrieved_docs\": [{\"title\": \"Refund Policy\", \"text\": \"Refunds are available within 7 days of purchase subject to the applicable conditions.\"}], \"refund_days\": 7}\nReturn JSON with exactly two fields: refund_days and eligible.\neligible must be true only when 10 is less than or equal to refund_days.",
+        "input": {
+          "state": {
+            "next_action": "search_docs",
+            "query": "7-day refund policy",
+            "retrieved_docs": [
+              {
+                "title": "Refund Policy",
+                "text": "Refunds are available within 7 days of purchase subject to the applicable conditions."
+              }
+            ],
+            "refund_days": 7
+          }
+        },
+        "output": {
+          "refund_days": 7,
+          "eligible": false
+        },
+        "error_flag": false,
+        "error_msg": null,
+        "latency_ms": 775,
+        "tokens": 138,
+        "reads": [
+          {
+            "step_idx": 2,
+            "key": "refund_days"
+          }
+        ],
+        "writes": [
+          "eligible"
+        ],
+        "state_after": {
+          "next_action": "search_docs",
+          "query": "7-day refund policy",
+          "retrieved_docs": [
+            {
+              "title": "Refund Policy",
+              "text": "Refunds are available within 7 days of purchase subject to the applicable conditions."
+            }
+          ],
+          "refund_days": 7,
+          "eligible": false
+        },
+        "pre_state_hash": "c7eb1e13aa5f2f77f6da588074cb15cdd447ba62",
+        "cache_key": "7a4993ce5b9abb18e072bdffd4a840743d797a4c"
+      },
+      {
+        "step_idx": 4,
+        "type": "final_answer",
+        "name": "answer",
+        "prompt": "Return the final answer for the customer.\nEligibility state: {\"next_action\": \"search_docs\", \"query\": \"7-day refund policy\", \"retrieved_docs\": [{\"title\": \"Refund Policy\", \"text\": \"Refunds are available within 7 days of purchase subject to the applicable conditions.\"}], \"refund_days\": 7, \"eligible\": false}\nReturn JSON with exactly one field, answer.\nUse exactly one of these strings:\n- Refund eligible\n- Refund not eligible",
+        "input": {
+          "state": {
+            "next_action": "search_docs",
+            "query": "7-day refund policy",
+            "retrieved_docs": [
+              {
+                "title": "Refund Policy",
+                "text": "Refunds are available within 7 days of purchase subject to the applicable conditions."
+              }
+            ],
+            "refund_days": 7,
+            "eligible": false
+          }
+        },
+        "output": {
+          "answer": "Refund not eligible"
+        },
+        "error_flag": false,
+        "error_msg": null,
+        "latency_ms": 764,
+        "tokens": 114,
+        "reads": [
+          {
+            "step_idx": 3,
+            "key": "eligible"
+          }
+        ],
+        "writes": [],
+        "state_after": {
+          "next_action": "search_docs",
+          "query": "7-day refund policy",
+          "retrieved_docs": [
+            {
+              "title": "Refund Policy",
+              "text": "Refunds are available within 7 days of purchase subject to the applicable conditions."
+            }
+          ],
+          "refund_days": 7,
+          "eligible": false
+        },
+        "pre_state_hash": "ebf3a8d17cef89a42acade06d429bf74d6405847",
+        "cache_key": "a445cefd0794c5019bbf988ae020b4502d6664d4"
+      }
+    ],
+    "fault": {
+      "injected": true,
+      "step_idx": 1,
+      "fault_type": "wrong_retrieval",
+      "description": "A plausible but incorrect refund-policy document is returned."
+    },
+    "lineage": {
+      "parent_run_id": "llm_ce27dd1816c0",
+      "forked_from_step": 1,
+      "patch": {
+        "target": "output",
+        "value": {
+          "query": "refund within 7 days",
+          "documents": [
+            {
+              "title": "Refund Policy",
+              "text": "Refunds are available within 7 days of purchase subject to the applicable conditions."
+            }
+          ],
+          "source": "replay_patch"
+        }
+      }
+    },
+    "meta": {
+      "split": "p1",
+      "is_decoy": false,
+      "model": "gemini-3.5-flash-lite",
+      "temperature": null
+    }
+  },
+  "diff": {
+    "a": "llm_ce27dd1816c0",
+    "b": "llm_ce27dd1816c0_r0865f7_21990b692196",
+    "first_divergence": 1,
+    "outcome": {
+      "a": "failed",
+      "b": "success"
+    },
+    "steps": [
+      {
+        "idx": 0,
+        "status": "same",
+        "a_output": {
+          "action": "search_docs",
+          "query": "7-day refund policy"
+        },
+        "b_output": {
+          "action": "search_docs",
+          "query": "7-day refund policy"
+        }
+      },
+      {
+        "idx": 1,
+        "status": "changed",
+        "a_output": {
+          "query": "refund within 7 days",
+          "documents": [
+            {
+              "title": "Refund Policy",
+              "text": "Refunds are available within 30 days of purchase subject to the applicable conditions."
+            }
+          ],
+          "source": "injected_wrong_retrieval"
+        },
+        "b_output": {
+          "query": "refund within 7 days",
+          "documents": [
+            {
+              "title": "Refund Policy",
+              "text": "Refunds are available within 7 days of purchase subject to the applicable conditions."
+            }
+          ],
+          "source": "replay_patch"
+        }
+      },
+      {
+        "idx": 2,
+        "status": "changed",
+        "a_output": {
+          "days": 30
+        },
+        "b_output": {
+          "days": 7
+        }
+      },
+      {
+        "idx": 3,
+        "status": "changed",
+        "a_output": {
+          "refund_days": 30,
+          "eligible": true
+        },
+        "b_output": {
+          "refund_days": 7,
+          "eligible": false
+        }
+      },
+      {
+        "idx": 4,
+        "status": "changed",
+        "a_output": {
+          "answer": "Refund eligible"
+        },
+        "b_output": {
+          "answer": "Refund not eligible"
+        }
+      }
+    ]
+  },
+  "causal_check": {
+    "run_id": "llm_ce27dd1816c0",
+    "trials": [
+      {
+        "step_idx": 1,
+        "patch": "repair suspected step",
+        "new_outcome": "success"
+      },
+      {
+        "step_idx": 0,
+        "patch": "no-op patch on unrelated step",
+        "new_outcome": "failed"
+      }
+    ]
+  },
+  "unrelated_run": {
+    "run_id": "llm_ce27dd1816c0_rde36cc_51cb792841a7",
+    "task": {
+      "template": "policy_lookup",
+      "task_seed": 9001,
+      "prompt": "A customer purchased a laptop 10 days ago. Check the refund policy and decide whether they are eligible.",
+      "expected_answer": "Refund not eligible"
+    },
+    "status": "failed",
+    "final_answer": "Refund eligible",
+    "agent_kind": "llm",
+    "steps": [
+      {
+        "step_idx": 0,
+        "type": "plan",
+        "name": "planner",
+        "prompt": "You are the planning stage of an observable AI agent.\nTask: A customer purchased a laptop 10 days ago. Check the refund policy and decide whether they are eligible.\nReturn JSON with exactly two fields: action and query.\nThe required action is search_docs and the query should ask for the 7-day refund policy.\nDo not make the final decision here.",
+        "input": {
+          "prompt": "A customer purchased a laptop 10 days ago. Check the refund policy and decide whether they are eligible."
+        },
+        "output": {
+          "action": "search_docs",
+          "query": "7-day refund policy"
+        },
+        "error_flag": false,
+        "error_msg": null,
+        "latency_ms": 782,
+        "tokens": 100,
+        "reads": [],
+        "writes": [
+          "next_action",
+          "query"
+        ],
+        "state_after": {
+          "next_action": "search_docs",
+          "query": "7-day refund policy"
+        },
+        "pre_state_hash": "bf21a9e8fbc5a3846fb05b4fa0859e0917b2202f",
+        "cache_key": "f16f937780862caee33a1974abe364c39f3053bd"
+      },
+      {
+        "step_idx": 1,
+        "type": "retrieval",
+        "name": "search_docs",
+        "prompt": null,
+        "input": {
+          "query": "refund within 7 days"
+        },
+        "output": {
+          "query": "refund within 7 days",
+          "documents": [
+            {
+              "title": "Refund Policy",
+              "text": "Refunds are available within 30 days of purchase subject to the applicable conditions."
+            }
+          ],
+          "source": "injected_wrong_retrieval"
+        },
+        "error_flag": false,
+        "error_msg": null,
+        "latency_ms": 8,
+        "tokens": 0,
+        "reads": [
+          {
+            "step_idx": 0,
+            "key": "query"
+          }
+        ],
+        "writes": [
+          "retrieved_docs"
+        ],
+        "state_after": {
+          "next_action": "search_docs",
+          "query": "7-day refund policy",
+          "retrieved_docs": [
+            {
+              "title": "Refund Policy",
+              "text": "Refunds are available within 30 days of purchase subject to the applicable conditions."
+            }
+          ]
+        },
+        "pre_state_hash": "0b5f0f89212901ee689d9778daf147f4d3638550",
+        "cache_key": "87ad78e7969008dd233b0f95bc2c67cb1b77a411"
+      },
+      {
+        "step_idx": 2,
+        "type": "parse",
+        "name": "parser",
+        "prompt": "Extract the refund duration from the retrieved policy text.\nCustomer task: A customer purchased a laptop 10 days ago. Check the refund policy and decide whether they are eligible.\nRetrieved documents:\n[{\"title\": \"Refund Policy\", \"text\": \"Refunds are available within 30 days of purchase subject to the applicable conditions.\"}]\nReturn JSON with exactly one field: days (integer).\nDo not decide eligibility yet.",
+        "input": {
+          "documents": [
+            {
+              "title": "Refund Policy",
+              "text": "Refunds are available within 30 days of purchase subject to the applicable conditions."
+            }
+          ]
+        },
+        "output": {
+          "days": 30
+        },
+        "error_flag": false,
+        "error_msg": null,
+        "latency_ms": 826,
+        "tokens": 105,
+        "reads": [
+          {
+            "step_idx": 1,
+            "key": "retrieved_docs"
+          }
+        ],
+        "writes": [
+          "refund_days"
+        ],
+        "state_after": {
+          "next_action": "search_docs",
+          "query": "7-day refund policy",
+          "retrieved_docs": [
+            {
+              "title": "Refund Policy",
+              "text": "Refunds are available within 30 days of purchase subject to the applicable conditions."
+            }
+          ],
+          "refund_days": 30
+        },
+        "pre_state_hash": "b78dc827cd9cd6a82783f2326471a7ba8e522f27",
+        "cache_key": "f3ec40fe9ef018697aab65193f6e5d7c56468f50"
+      },
+      {
+        "step_idx": 3,
+        "type": "llm_call",
+        "name": "reasoner",
+        "prompt": "You are the decision stage of an AI agent.\nCustomer purchased the laptop 10 days ago.\nUse ONLY refund_days from the state below as the policy limit.\nState: {\"next_action\": \"search_docs\", \"query\": \"7-day refund policy\", \"retrieved_docs\": [{\"title\": \"Refund Policy\", \"text\": \"Refunds are available within 30 days of purchase subject to the applicable conditions.\"}], \"refund_days\": 30}\nReturn JSON with exactly two fields: refund_days and eligible.\neligible must be true only when 10 is less than or equal to refund_days.",
+        "input": {
+          "state": {
+            "next_action": "search_docs",
+            "query": "7-day refund policy",
+            "retrieved_docs": [
+              {
+                "title": "Refund Policy",
+                "text": "Refunds are available within 30 days of purchase subject to the applicable conditions."
+              }
+            ],
+            "refund_days": 30
+          }
+        },
+        "output": {
+          "refund_days": 30,
+          "eligible": true
+        },
+        "error_flag": false,
+        "error_msg": null,
+        "latency_ms": 995,
+        "tokens": 138,
+        "reads": [
+          {
+            "step_idx": 2,
+            "key": "refund_days"
+          }
+        ],
+        "writes": [
+          "eligible"
+        ],
+        "state_after": {
+          "next_action": "search_docs",
+          "query": "7-day refund policy",
+          "retrieved_docs": [
+            {
+              "title": "Refund Policy",
+              "text": "Refunds are available within 30 days of purchase subject to the applicable conditions."
+            }
+          ],
+          "refund_days": 30,
+          "eligible": true
+        },
+        "pre_state_hash": "fea2a3c6bed9289c50c811dea952500faf1fc119",
+        "cache_key": "99ac0229a32eef6f2afd7afd86b9f9644a670006"
+      },
+      {
+        "step_idx": 4,
+        "type": "final_answer",
+        "name": "answer",
+        "prompt": "Return the final answer for the customer.\nEligibility state: {\"next_action\": \"search_docs\", \"query\": \"7-day refund policy\", \"retrieved_docs\": [{\"title\": \"Refund Policy\", \"text\": \"Refunds are available within 30 days of purchase subject to the applicable conditions.\"}], \"refund_days\": 30, \"eligible\": true}\nReturn JSON with exactly one field, answer.\nUse exactly one of these strings:\n- Refund eligible\n- Refund not eligible",
+        "input": {
+          "state": {
+            "next_action": "search_docs",
+            "query": "7-day refund policy",
+            "retrieved_docs": [
+              {
+                "title": "Refund Policy",
+                "text": "Refunds are available within 30 days of purchase subject to the applicable conditions."
+              }
+            ],
+            "refund_days": 30,
+            "eligible": true
+          }
+        },
+        "output": {
+          "answer": "Refund eligible"
+        },
+        "error_flag": false,
+        "error_msg": null,
+        "latency_ms": 765,
+        "tokens": 113,
+        "reads": [
+          {
+            "step_idx": 3,
+            "key": "eligible"
+          }
+        ],
+        "writes": [],
+        "state_after": {
+          "next_action": "search_docs",
+          "query": "7-day refund policy",
+          "retrieved_docs": [
+            {
+              "title": "Refund Policy",
+              "text": "Refunds are available within 30 days of purchase subject to the applicable conditions."
+            }
+          ],
+          "refund_days": 30,
+          "eligible": true
+        },
+        "pre_state_hash": "34383db753f56722376bfd16418ec1a7774df788",
+        "cache_key": "e633e64e3a1c27ad97648162f06a2286d16c299c"
+      }
+    ],
+    "fault": {
+      "injected": true,
+      "step_idx": 1,
+      "fault_type": "wrong_retrieval",
+      "description": "A plausible but incorrect refund-policy document is returned."
+    },
+    "lineage": {
+      "parent_run_id": "llm_ce27dd1816c0",
+      "forked_from_step": 0,
+      "patch": {
+        "target": "output",
+        "value": {
+          "action": "search_docs",
+          "query": "7-day refund policy",
+          "_blackbox_noop": true
+        }
+      }
+    },
+    "meta": {
+      "split": "p1",
+      "is_decoy": false,
+      "model": "gemini-3.5-flash-lite",
+      "temperature": null
+    }
+  }
+}

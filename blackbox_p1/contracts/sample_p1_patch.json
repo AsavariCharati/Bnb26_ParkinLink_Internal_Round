@@ -1,0 +1,13 @@
+{
+  "target": "output",
+  "value": {
+    "query": "refund within 7 days",
+    "documents": [
+      {
+        "title": "Refund Policy",
+        "text": "Refunds are available within 7 days of purchase subject to the applicable conditions."
+      }
+    ],
+    "source": "replay_patch"
+  }
+}
