@@ -1,139 +1,135 @@
-# Black Box — P1 (Gemini + ML Diagnosis + Live Replay)
+# Black Box
 
-This folder is the **P1 layer on top of the already-tested P0 ML project**.
+Black Box is an AI-agent debugging system that records agent execution traces, identifies the step most likely responsible for a failure using XGBoost, and verifies the diagnosis through checkpoint replay and causal validation.
 
-P0 is preserved as-is: the same `core/`, `ml/`, `data/runs.jsonl`, `data/model.pkl`, and evaluation artifacts are included. P1 adds a real Gemini-backed execution path that produces the same five-step `Run/Step` contract used by the P0 model.
+## P0 — Controlled Benchmark
 
-## What P1 demonstrates
+P0 uses a deterministic agent with injected faults to train and evaluate the XGBoost diagnosis model.
 
-```text
-Prompt
-  ↓
-Real Gemini agent
-  ↓
-5-step observable trace
-  ↓
-Injected realistic failure
-  ↓
-Existing P0 XGBoost diagnosis
-  ↓
-Suspect checkpoint
-  ↓
-Live Gemini replay from that checkpoint
-  ↓
-Patch suspected step
-  ↓
-FAIL → SUCCESS
-  ↓
-Trace diff + causal check
+### Setup
+
+```bash
+python -m venv venv
 ```
 
-The first P1 fault is deliberately narrow and reliable:
+Activate the virtual environment.
 
-`wrong_retrieval` at Step 1 → a plausible 30-day refund document is returned instead of the 7-day document.
-
-The five trace steps are fixed to match the P0 `policy_lookup` shape:
-
-`0 plan → 1 retrieval → 2 parse → 3 llm_call → 4 final_answer`
-
-## 1. Setup
-
-Run PowerShell from this project root.
-
+**Windows PowerShell:**
 ```powershell
-python -m venv .venv
-.venv\\Scripts\\Activate.ps1
+.\venv\Scripts\Activate.ps1
+```
+
+**Windows CMD:**
+```cmd
+venv\Scripts\activate
+```
+
+Install dependencies:
+
+```bash
 pip install -r requirements.txt
 ```
 
-Copy `.env.example` to `.env` and put your Gemini API key in it:
+### Generate Dataset
 
-```text
-GEMINI_API_KEY=...
-GEMINI_MODEL=gemini-3.8-flash
-```
-
-The `.env` file is ignored by git in a normal setup. **Never commit your API key.**
-
-## 2. Use your same P0 model
-
-The ZIP already contains `data/model.pkl` from the working P0 build.
-
-If your local P0 `model.pkl` is the one you want to use, simply overwrite:
-
-```text
-data/model.pkl
-```
-
-No retraining is required for the first P1 test.
-
-## 3. First run the offline plumbing test
-
-This does not call Gemini. It verifies that the P1 trace, existing XGBoost model, replay engine, and diff work together.
-
-```powershell
-python -m scripts.run_p1 --mock
-```
-
-Expected flow:
-
-```text
-Original: failed
-Diagnosis: suspect step
-Replay: failed -> success
-Prefix reuse: 1 step
-Steps rerun: 4
-Causal check: repaired suspect changes outcome; unrelated patch leaves failure
-```
-
-## 4. Run the real Gemini P1 demo
-
-```powershell
-python -m scripts.run_p1
-```
-
-This calls Gemini for planner, parser, reasoner, and final-answer stages. Retrieval is a local observable tool call so the fault can be injected exactly and replayed exactly.
-
-The current default model is `gemini-3.8-flash`. The code does not set legacy sampling parameters such as temperature.
-
-**P0 model compatibility:** the P0 XGBoost was trained on controlled benchmark latency values, while live Gemini calls can be much slower. `ml/p1_adapter.py` clips only the copy used for P0 scoring to the clean benchmark latency range; the stored P1 trace keeps the real API wall-clock latency.
-
-## 5. Outputs
-
-A run is written under:
-
-```text
-data/p1_runs/
-```
-
-The combined latest demo result is:
-
-```text
-data/p1_runs/latest_p1_result.json
-```
-
-It contains the original LLM run, diagnosis, replay result, fixed replay, trace diff, causal check, and unrelated-step control trial.
-
-## 6. The actual P1 claim
-
-Do not call the P1 result "real-world model accuracy". The fault is still controlled and injected by Black Box. The new part is that the **execution being diagnosed is produced by a real Gemini call**, and the replay suffix is executed again through Gemini.
-
-The strongest demo sequence is:
-
-1. Gemini produces a failed run.
-2. Black Box ranks the suspicious checkpoint.
-3. Black Box reuses the prefix and reruns only the suffix.
-4. Repairing the suspected step flips the outcome.
-5. Repairing an unrelated step does not.
-6. The diff shows where the executions first diverged.
-
-## P0 commands remain available
-
-```powershell
+```bash
 python -m scripts.generate_data
+```
+
+### Train XGBoost
+
+```bash
 python -m ml.train
-python -m ml.diagnose
+```
+
+### Evaluate
+
+```bash
 python -m ml.evaluate
 ```
 
-Use module form (`python -m ...`) from the project root.
+### Diagnose a Run
+
+```bash
+python -m ml.diagnose
+```
+
+---
+
+## P1 — Real Gemini Agent
+
+P1 connects the Black Box pipeline to a real Gemini-powered agent.
+
+Flow:
+
+```text
+Gemini Agent
+     ↓
+Execution Trace
+     ↓
+XGBoost Diagnosis
+     ↓
+Suspect Step
+     ↓
+Checkpoint Replay
+     ↓
+Repair
+     ↓
+Trace Diff
+     ↓
+Causal Validation
+```
+
+### Configure Gemini
+
+Create `.env` from `.env.example` and add:
+
+```env
+GEMINI_API_KEY=YOUR_API_KEY
+GEMINI_MODEL=gemini-3.5-flash-lite
+```
+
+### Check P1 Setup
+
+```bash
+python -m scripts.check_p1
+```
+
+### Run P1
+
+```bash
+python -m scripts.run_p1
+```
+
+The P1 demo shows a real Gemini failure being diagnosed by XGBoost, replayed from the suspected checkpoint, repaired, and verified through a failed → success outcome.
+
+---
+
+## Tests
+
+```bash
+pytest
+```
+
+## Main Commands
+
+```bash
+# Setup
+python -m venv venv
+pip install -r requirements.txt
+
+# P0
+python -m scripts.generate_data
+python -m ml.train
+python -m ml.evaluate
+python -m ml.diagnose
+
+# P1
+python -m scripts.check_p1
+python -m scripts.run_p1
+
+# Tests
+pytest
+```
+
+> Run all commands from the project root with the virtual environment activated.
