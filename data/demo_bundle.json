@@ -1,0 +1,836 @@
+{
+  "version": "1.0.0",
+  "generated_at": "2026-10-03T19:30:00Z",
+  "runs": [
+    {
+      "id": "run_0142",
+      "template": "price_compare",
+      "agent_kind": "simulated",
+      "status": "FAILED",
+      "outcome_summary": "Selected incorrect high-tier vendor package due to price calculation anomaly",
+      "created_at": "2026-10-03T14:15:20Z",
+      "suspect_step": 3,
+      "fault": {
+        "fault_type": "numeric_overflow",
+        "injected_step": 3,
+        "description": "Currency conversion multiplied by 100 instead of dividing by rate",
+        "patch_recommendation": "Normalize vendor quotes to base USD before applying comparison logic"
+      },
+      "steps": [
+        {
+          "step_idx": 1,
+          "step_name": "intent_planner",
+          "step_type": "plan",
+          "input_data": {"query": "Find cheapest enterprise database for 500GB storage"},
+          "output_data": {"intent": "price_comparison", "vendors": ["VendorA", "VendorB", "VendorC"]},
+          "state_delta": {"stage": "init", "target_capacity_gb": 500},
+          "reads": [],
+          "writes": ["target_capacity_gb", "vendors"],
+          "latency_ms": 120.0,
+          "tokens": 85,
+          "error_flag": false,
+          "raw_prompt": "Analyze user intent and list target vendors for price comparison."
+        },
+        {
+          "step_idx": 2,
+          "step_name": "vendor_retrieval",
+          "step_type": "tool_call",
+          "tool_name": "query_pricing_api",
+          "input_data": {"vendors": ["VendorA", "VendorB", "VendorC"], "region": "us-east-1"},
+          "output_data": {"quotes": {"VendorA": {"raw": 450, "currency": "USD"}, "VendorB": {"raw": 54000, "currency": "JPY"}, "VendorC": {"raw": 520, "currency": "USD"}}},
+          "state_delta": {"raw_quotes_received": true},
+          "reads": ["vendors"],
+          "writes": ["vendor_quotes"],
+          "latency_ms": 310.5,
+          "tokens": 140,
+          "error_flag": false
+        },
+        {
+          "step_idx": 3,
+          "step_name": "currency_normalizer",
+          "step_type": "llm_call",
+          "raw_prompt": "Convert all vendor quotes to base currency USD (1 USD = 150 JPY)",
+          "input_data": {"quotes": {"VendorA": 450, "VendorB": 54000, "VendorC": 520}},
+          "output_data": {"normalized_usd": {"VendorA": 450, "VendorB": 54000, "VendorC": 520}},
+          "state_delta": {"normalized_quotes": {"VendorA": 450, "VendorB": 54000, "VendorC": 520}},
+          "reads": ["vendor_quotes"],
+          "writes": ["normalized_quotes"],
+          "latency_ms": 420.0,
+          "tokens": 210,
+          "error_flag": false
+        },
+        {
+          "step_idx": 4,
+          "step_name": "capacity_tier_filter",
+          "step_type": "parse",
+          "input_data": {"normalized": {"VendorA": 450, "VendorB": 54000, "VendorC": 520}, "req_gb": 500},
+          "output_data": {"eligible": ["VendorA", "VendorB", "VendorC"]},
+          "state_delta": {"filtered_candidates": ["VendorA", "VendorB", "VendorC"]},
+          "reads": ["target_capacity_gb", "normalized_quotes"],
+          "writes": ["eligible_vendors"],
+          "latency_ms": 45.2,
+          "tokens": 60,
+          "error_flag": false
+        },
+        {
+          "step_idx": 5,
+          "step_name": "min_cost_selector",
+          "step_type": "tool_call",
+          "tool_name": "compute_minimum",
+          "input_data": {"candidates": {"VendorA": 450, "VendorB": 54000, "VendorC": 520}},
+          "output_data": {"best_vendor": "VendorA", "best_cost": 450, "disqualified": ["VendorB (cost: 54000)"]},
+          "state_delta": {"selected_vendor": "VendorA"},
+          "reads": ["normalized_quotes", "eligible_vendors"],
+          "writes": ["selection_result"],
+          "latency_ms": 15.0,
+          "tokens": 30,
+          "error_flag": false
+        },
+        {
+          "step_idx": 6,
+          "step_name": "contract_synthesizer",
+          "step_type": "llm_call",
+          "raw_prompt": "Synthesize summary explaining why VendorB was disqualified and why selected vendor was chosen",
+          "input_data": {"selection": "VendorA", "outlier": "VendorB at $54,000/mo"},
+          "output_data": {"recommendation": "VendorA selected ($450/mo). VendorB was discarded due to extreme pricing ($54,000/mo)."},
+          "state_delta": {"final_draft": true},
+          "reads": ["selection_result", "normalized_quotes"],
+          "writes": ["contract_draft"],
+          "latency_ms": 510.0,
+          "tokens": 290,
+          "error_flag": false
+        },
+        {
+          "step_idx": 7,
+          "step_name": "final_answer",
+          "step_type": "final_answer",
+          "input_data": {"draft": "VendorA selected ($450/mo)"},
+          "output_data": {"final_choice": "VendorA", "status": "Suboptimal: VendorB actual price is $360 USD (54000/150)"},
+          "state_delta": {"execution_completed": true},
+          "reads": ["contract_draft"],
+          "writes": ["final_outcome"],
+          "latency_ms": 25.0,
+          "tokens": 40,
+          "error_flag": true,
+          "error_message": "Suboptimal vendor selected: VendorB was $360 USD but normalized as $54000 USD"
+        }
+      ]
+    },
+    {
+      "id": "run_0143",
+      "template": "sql_agent",
+      "agent_kind": "openai",
+      "status": "FAILED",
+      "outcome_summary": "SQL syntax error on generated partition filter caused execution failure",
+      "created_at": "2026-10-03T14:28:45Z",
+      "suspect_step": 2,
+      "fault": {
+        "fault_type": "schema_inversion",
+        "injected_step": 2,
+        "description": "Agent referenced non-existent column 'created_timestamp' instead of 'created_at'",
+        "patch_recommendation": "Use table schema metadata to validate column names prior to query execution"
+      },
+      "steps": [
+        {
+          "step_idx": 1,
+          "step_name": "schema_inspector",
+          "step_type": "tool_call",
+          "tool_name": "get_table_schema",
+          "input_data": {"table": "orders"},
+          "output_data": {"columns": ["id", "customer_id", "total_amount", "created_at", "status"]},
+          "state_delta": {"table_schema": ["id", "customer_id", "total_amount", "created_at", "status"]},
+          "reads": [],
+          "writes": ["table_schema"],
+          "latency_ms": 85.0,
+          "tokens": 45,
+          "error_flag": false
+        },
+        {
+          "step_idx": 2,
+          "step_name": "sql_generator",
+          "step_type": "llm_call",
+          "raw_prompt": "Write a SQL query to calculate sum(total_amount) for 2026-Q1",
+          "input_data": {"table": "orders", "filter": "2026-Q1"},
+          "output_data": {"sql": "SELECT sum(total_amount) FROM orders WHERE created_timestamp >= '2026-01-01'"},
+          "state_delta": {"generated_query": "SELECT sum(total_amount) FROM orders WHERE created_timestamp >= '2026-01-01'"},
+          "reads": ["table_schema"],
+          "writes": ["generated_query"],
+          "latency_ms": 410.0,
+          "tokens": 195,
+          "error_flag": false
+        },
+        {
+          "step_idx": 3,
+          "step_name": "sql_executor",
+          "step_type": "tool_call",
+          "tool_name": "execute_query",
+          "input_data": {"sql": "SELECT sum(total_amount) FROM orders WHERE created_timestamp >= '2026-01-01'"},
+          "output_data": null,
+          "state_delta": {"query_error": "Column 'created_timestamp' not found in table 'orders'"},
+          "reads": ["generated_query"],
+          "writes": ["query_result"],
+          "latency_ms": 110.0,
+          "tokens": 20,
+          "error_flag": true,
+          "error_message": "OperationalError: column 'created_timestamp' does not exist"
+        },
+        {
+          "step_idx": 4,
+          "step_name": "error_handler",
+          "step_type": "llm_call",
+          "raw_prompt": "Diagnose SQL failure and retry",
+          "input_data": {"error": "column 'created_timestamp' does not exist"},
+          "output_data": {"diagnosis": "Failed query execution due to bad column reference."},
+          "state_delta": {"retry_abandoned": true},
+          "reads": ["query_result"],
+          "writes": ["error_report"],
+          "latency_ms": 320.0,
+          "tokens": 150,
+          "error_flag": false
+        },
+        {
+          "step_idx": 5,
+          "step_name": "final_answer",
+          "step_type": "final_answer",
+          "input_data": {"report": "Failed query execution due to bad column reference."},
+          "output_data": {"error": "Query failed: column 'created_timestamp' does not exist"},
+          "state_delta": {"status": "ABORTED"},
+          "reads": ["error_report"],
+          "writes": ["final_status"],
+          "latency_ms": 18.0,
+          "tokens": 30,
+          "error_flag": true,
+          "error_message": "Execution aborted with SQL error"
+        }
+      ]
+    },
+    {
+      "id": "run_0144",
+      "template": "customer_support",
+      "agent_kind": "anthropic",
+      "status": "FAILED",
+      "outcome_summary": "Hallucinated account identifier led to routing ticket to suspended queue",
+      "created_at": "2026-10-03T14:45:00Z",
+      "suspect_step": 2,
+      "fault": {
+        "fault_type": "hallucinated_id",
+        "injected_step": 2,
+        "description": "Model fabricated tenant_id 'acct_99999' instead of looking up customer record",
+        "patch_recommendation": "Enforce strict schema lookup before dispatching webhook payloads"
+      },
+      "steps": [
+        {
+          "step_idx": 1,
+          "step_name": "incoming_ticket_parser",
+          "step_type": "parse",
+          "input_data": {"ticket_body": "User Jane reported SSO login loop in tenant Acme Corp"},
+          "output_data": {"user": "Jane", "organization": "Acme Corp", "issue": "SSO login loop"},
+          "state_delta": {"org_name": "Acme Corp"},
+          "reads": [],
+          "writes": ["parsed_ticket"],
+          "latency_ms": 65.0,
+          "tokens": 50,
+          "error_flag": false
+        },
+        {
+          "step_idx": 2,
+          "step_name": "account_resolver",
+          "step_type": "llm_call",
+          "raw_prompt": "Resolve the tenant_id for organization Acme Corp",
+          "input_data": {"organization": "Acme Corp"},
+          "output_data": {"tenant_id": "acct_99999", "tier": "enterprise"},
+          "state_delta": {"tenant_id": "acct_99999"},
+          "reads": ["parsed_ticket"],
+          "writes": ["resolved_tenant"],
+          "latency_ms": 350.0,
+          "tokens": 160,
+          "error_flag": false
+        },
+        {
+          "step_idx": 3,
+          "step_name": "queue_router",
+          "step_type": "tool_call",
+          "tool_name": "dispatch_support_queue",
+          "input_data": {"tenant_id": "acct_99999", "priority": "P1"},
+          "output_data": {"assigned_queue": "quarantine_suspended_accounts"},
+          "state_delta": {"queue": "quarantine_suspended_accounts"},
+          "reads": ["resolved_tenant"],
+          "writes": ["routing_status"],
+          "latency_ms": 140.0,
+          "tokens": 40,
+          "error_flag": false
+        },
+        {
+          "step_idx": 4,
+          "step_name": "final_answer",
+          "step_type": "final_answer",
+          "input_data": {"queue": "quarantine_suspended_accounts"},
+          "output_data": {"status": "Ticket dispatched to quarantine queue acct_99999"},
+          "state_delta": {"ticket_routed": true},
+          "reads": ["routing_status"],
+          "writes": ["final_dispatch"],
+          "latency_ms": 20.0,
+          "tokens": 25,
+          "error_flag": true,
+          "error_message": "Ticket misrouted: acct_99999 is invalid/quarantined"
+        }
+      ]
+    },
+    {
+      "id": "run_0145",
+      "template": "policy_lookup",
+      "agent_kind": "simulated",
+      "status": "FAILED",
+      "outcome_summary": "Stale retrieval cache retrieved superseded 2024 per-diem meals rate",
+      "created_at": "2026-10-03T15:10:02Z",
+      "suspect_step": 2,
+      "fault": {
+        "fault_type": "stale_retrieval",
+        "injected_step": 2,
+        "description": "Vector store index matched archived 2024 policy document instead of 2026 current policy",
+        "patch_recommendation": "Add temporal metadata filter to vector search queries"
+      },
+      "steps": [
+        {
+          "step_idx": 1,
+          "step_name": "query_analyzer",
+          "step_type": "plan",
+          "input_data": {"query": "What is the domestic daily meal allowance for NY?"},
+          "output_data": {"city": "New York", "topic": "meals_per_diem"},
+          "state_delta": {"city": "New York"},
+          "reads": [],
+          "writes": ["parsed_query"],
+          "latency_ms": 80.0,
+          "tokens": 40,
+          "error_flag": false
+        },
+        {
+          "step_idx": 2,
+          "step_name": "rag_search",
+          "step_type": "retrieval",
+          "input_data": {"query": "New York meals allowance"},
+          "output_data": {"doc_id": "doc_2024_archive.pdf", "text": "NYC standard meal allowance is $75/day."},
+          "state_delta": {"doc_retrieved": "doc_2024_archive.pdf"},
+          "reads": ["parsed_query"],
+          "writes": ["retrieved_doc"],
+          "latency_ms": 220.0,
+          "tokens": 90,
+          "error_flag": false
+        },
+        {
+          "step_idx": 3,
+          "step_name": "allowance_extractor",
+          "step_type": "llm_call",
+          "raw_prompt": "Extract the daily dollar allowance from the text.",
+          "input_data": {"text": "NYC standard meal allowance is $75/day."},
+          "output_data": {"daily_rate": 75, "currency": "USD"},
+          "state_delta": {"rate": 75},
+          "reads": ["retrieved_doc"],
+          "writes": ["extracted_rate"],
+          "latency_ms": 290.0,
+          "tokens": 105,
+          "error_flag": false
+        },
+        {
+          "step_idx": 4,
+          "step_name": "final_answer",
+          "step_type": "final_answer",
+          "input_data": {"daily_rate": 75},
+          "output_data": {"result": "The daily meal allowance for NY is $75/day."},
+          "state_delta": {"completed": true},
+          "reads": ["extracted_rate"],
+          "writes": ["final_answer"],
+          "latency_ms": 22.0,
+          "tokens": 30,
+          "error_flag": true,
+          "error_message": "Incorrect policy: 2026 rate is $95/day; retrieved outdated 2024 policy"
+        }
+      ]
+    },
+    {
+      "id": "run_0141",
+      "template": "policy_lookup",
+      "agent_kind": "simulated",
+      "status": "PASSED",
+      "outcome_summary": "Accurately resolved travel expense reimbursement ceiling according to 2026 guidelines",
+      "created_at": "2026-10-03T14:02:11Z",
+      "suspect_step": null,
+      "fault": null,
+      "steps": [
+        {
+          "step_idx": 1,
+          "step_name": "parse_user_query",
+          "step_type": "plan",
+          "input_data": {"employee_level": "L5", "travel_type": "international"},
+          "output_data": {"policy_doc": "travel_2026_v2.pdf", "section": "hotel_caps"},
+          "state_delta": {"section_identified": "hotel_caps"},
+          "reads": [],
+          "writes": ["policy_section"],
+          "latency_ms": 95.0,
+          "tokens": 65,
+          "error_flag": false
+        },
+        {
+          "step_idx": 2,
+          "step_name": "vector_search",
+          "step_type": "retrieval",
+          "input_data": {"query": "L5 international hotel daily cap"},
+          "output_data": {"chunk_id": "c_8912", "text": "For L5 employees traveling internationally, maximum lodging reimbursement is $320 USD/night."},
+          "state_delta": {"chunk_loaded": "c_8912"},
+          "reads": ["policy_section"],
+          "writes": ["retrieved_context"],
+          "latency_ms": 180.0,
+          "tokens": 120,
+          "error_flag": false
+        },
+        {
+          "step_idx": 3,
+          "step_name": "policy_extractor",
+          "step_type": "llm_call",
+          "raw_prompt": "Extract the exact dollar limit from retrieved context.",
+          "input_data": {"context": "For L5 employees traveling internationally, maximum lodging reimbursement is $320 USD/night."},
+          "output_data": {"cap_amount": 320, "currency": "USD"},
+          "state_delta": {"cap": 320},
+          "reads": ["retrieved_context"],
+          "writes": ["extracted_cap"],
+          "latency_ms": 260.0,
+          "tokens": 110,
+          "error_flag": false
+        },
+        {
+          "step_idx": 4,
+          "step_name": "final_answer",
+          "step_type": "final_answer",
+          "input_data": {"cap": 320},
+          "output_data": {"response": "The daily lodging cap for L5 international travel is $320 USD/night."},
+          "state_delta": {"completed": true},
+          "reads": ["extracted_cap"],
+          "writes": ["final_response"],
+          "latency_ms": 30.0,
+          "tokens": 35,
+          "error_flag": false
+        }
+      ]
+    }
+  ],
+  "diagnoses": {
+    "run_0142": {
+      "run_id": "run_0142",
+      "suspect_step": 3,
+      "suspect_step_name": "currency_normalizer",
+      "relative_blame": 0.62,
+      "blame_ranking": [
+        {"step_idx": 3, "step_name": "currency_normalizer", "score": 0.62},
+        {"step_idx": 5, "step_name": "min_cost_selector", "score": 0.22},
+        {"step_idx": 6, "step_name": "contract_synthesizer", "score": 0.10},
+        {"step_idx": 2, "step_name": "vendor_retrieval", "score": 0.04},
+        {"step_idx": 1, "step_name": "intent_planner", "score": 0.02}
+      ],
+      "evidence": [
+        {
+          "name": "output value (VendorB)",
+          "observed": "$54,000 USD",
+          "typical_or_expected": "$360 USD (54000 JPY / 150)",
+          "category": "output"
+        },
+        {
+          "name": "state change: normalized_quotes",
+          "observed": "VendorB left as 54000",
+          "typical_or_expected": "VendorB normalized to 360",
+          "category": "state"
+        },
+        {
+          "name": "downstream blast radius",
+          "observed": "4 downstream steps poisoned",
+          "typical_or_expected": "0 downstream steps poisoned",
+          "category": "semantic"
+        }
+      ],
+      "causal_chain": {
+        "nodes": [
+          {
+            "step_idx": 3,
+            "step_name": "currency_normalizer",
+            "step_type": "llm_call",
+            "description": "Failed to apply 150 JPY:USD divisor, writing 54000 into normalized_quotes",
+            "variable_affected": "normalized_quotes",
+            "state_diff": "VendorB: 54000 (expected: 360)"
+          },
+          {
+            "step_idx": 4,
+            "step_name": "capacity_tier_filter",
+            "step_type": "parse",
+            "description": "Propagated poisoned quote map forward without range validation",
+            "variable_affected": "eligible_vendors",
+            "state_diff": "Includes VendorB with inflated cost"
+          },
+          {
+            "step_idx": 5,
+            "step_name": "min_cost_selector",
+            "step_type": "tool_call",
+            "description": "Incorrectly eliminated VendorB because $54,000 > $450 (VendorA)",
+            "variable_affected": "selection_result",
+            "state_diff": "Selected VendorA ($450) over actual lowest VendorB ($360)"
+          },
+          {
+            "step_idx": 6,
+            "step_name": "contract_synthesizer",
+            "step_type": "llm_call",
+            "description": "Generated contract based on false premise that VendorB was $54,000/mo",
+            "variable_affected": "contract_draft",
+            "state_diff": "Draft justifies rejection on invalid 54000 figure"
+          },
+          {
+            "step_idx": 7,
+            "step_name": "final_answer",
+            "step_type": "final_answer",
+            "description": "Terminated execution with suboptimal vendor selection",
+            "variable_affected": "final_outcome",
+            "state_diff": "FAILED outcome emitted"
+          }
+        ],
+        "final_impact": "Suboptimal vendor selected: customer overpays by $90/mo ($450 vs $360)"
+      },
+      "healthy_reference": {
+        "step_idx": 3,
+        "expected_output": {"normalized_usd": {"VendorA": 450, "VendorB": 360, "VendorC": 520}},
+        "expected_final_vendor": "VendorB"
+      },
+      "suggested_patch": "Divide JPY currency by current exchange rate (150) before writing to normalized_quotes"
+    },
+    "run_0143": {
+      "run_id": "run_0143",
+      "suspect_step": 2,
+      "suspect_step_name": "sql_generator",
+      "relative_blame": 0.78,
+      "blame_ranking": [
+        {"step_idx": 2, "step_name": "sql_generator", "score": 0.78},
+        {"step_idx": 3, "step_name": "sql_executor", "score": 0.14},
+        {"step_idx": 4, "step_name": "error_handler", "score": 0.05},
+        {"step_idx": 1, "step_name": "schema_inspector", "score": 0.03}
+      ],
+      "evidence": [
+        {
+          "name": "SQL Column Reference",
+          "observed": "created_timestamp",
+          "typical_or_expected": "created_at (from orders schema)",
+          "category": "output"
+        },
+        {
+          "name": "Schema Inversion",
+          "observed": "Unseen column hallucinated into WHERE clause",
+          "typical_or_expected": "Strict subset of inspectable columns",
+          "category": "state"
+        }
+      ],
+      "causal_chain": {
+        "nodes": [
+          {
+            "step_idx": 2,
+            "step_name": "sql_generator",
+            "step_type": "llm_call",
+            "description": "Generated query with invalid column name 'created_timestamp'",
+            "variable_affected": "generated_query",
+            "state_diff": "WHERE created_timestamp >= '2026-01-01'"
+          },
+          {
+            "step_idx": 3,
+            "step_name": "sql_executor",
+            "step_type": "tool_call",
+            "description": "Database rejected query with column not found exception",
+            "variable_affected": "query_result",
+            "state_diff": "OperationalError raised"
+          },
+          {
+            "step_idx": 5,
+            "step_name": "final_answer",
+            "step_type": "final_answer",
+            "description": "Run terminated in ABORTED state",
+            "variable_affected": "final_status",
+            "state_diff": "FAILED"
+          }
+        ],
+        "final_impact": "Query execution failed with unhandled operational error"
+      },
+      "healthy_reference": {
+        "step_idx": 2,
+        "expected_sql": "SELECT sum(total_amount) FROM orders WHERE created_at >= '2026-01-01'"
+      },
+      "suggested_patch": "Replace 'created_timestamp' with 'created_at'"
+    },
+    "run_0144": {
+      "run_id": "run_0144",
+      "suspect_step": 2,
+      "suspect_step_name": "account_resolver",
+      "relative_blame": 0.71,
+      "blame_ranking": [
+        {"step_idx": 2, "step_name": "account_resolver", "score": 0.71},
+        {"step_idx": 3, "step_name": "queue_router", "score": 0.19},
+        {"step_idx": 1, "step_name": "incoming_ticket_parser", "score": 0.10}
+      ],
+      "evidence": [
+        {
+          "name": "Tenant ID format",
+          "observed": "acct_99999",
+          "typical_or_expected": "acct_48102 (Acme Corp active tenant)",
+          "category": "output"
+        },
+        {
+          "name": "Queue Assignment",
+          "observed": "quarantine_suspended_accounts",
+          "typical_or_expected": "enterprise_tier_active",
+          "category": "state"
+        }
+      ],
+      "causal_chain": {
+        "nodes": [
+          {
+            "step_idx": 2,
+            "step_name": "account_resolver",
+            "step_type": "llm_call",
+            "description": "Synthesized fictitious tenant ID acct_99999 for Acme Corp",
+            "variable_affected": "resolved_tenant",
+            "state_diff": "tenant_id: acct_99999"
+          },
+          {
+            "step_idx": 3,
+            "step_name": "queue_router",
+            "step_type": "tool_call",
+            "description": "Router mapped unknown/default ID to quarantine queue",
+            "variable_affected": "routing_status",
+            "state_diff": "queue: quarantine_suspended_accounts"
+          },
+          {
+            "step_idx": 4,
+            "step_name": "final_answer",
+            "step_type": "final_answer",
+            "description": "Ticket stalled in quarantine queue instead of enterprise support",
+            "variable_affected": "final_dispatch",
+            "state_diff": "FAILED"
+          }
+        ],
+        "final_impact": "High-priority customer ticket silently quarantined"
+      },
+      "healthy_reference": {
+        "step_idx": 2,
+        "expected_tenant_id": "acct_48102"
+      },
+      "suggested_patch": "Query CRM database rather than prompting LLM to guess tenant_id"
+    },
+    "run_0145": {
+      "run_id": "run_0145",
+      "suspect_step": 3,
+      "suspect_step_name": "allowance_extractor",
+      "relative_blame": 0.49,
+      "blame_ranking": [
+        {"step_idx": 3, "step_name": "allowance_extractor", "score": 0.49},
+        {"step_idx": 2, "step_name": "rag_search", "score": 0.38},
+        {"step_idx": 1, "step_name": "query_analyzer", "score": 0.13}
+      ],
+      "evidence": [
+        {
+          "name": "Retrieved Document Version",
+          "observed": "doc_2024_archive.pdf",
+          "typical_or_expected": "doc_2026_current.pdf",
+          "category": "timing"
+        },
+        {
+          "name": "Extracted Rate",
+          "observed": "$75/day",
+          "typical_or_expected": "$95/day",
+          "category": "output"
+        }
+      ],
+      "causal_chain": {
+        "nodes": [
+          {
+            "step_idx": 2,
+            "step_name": "rag_search",
+            "step_type": "retrieval",
+            "description": "Retrieved outdated 2024 archive PDF due to missing temporal filter",
+            "variable_affected": "retrieved_doc",
+            "state_diff": "doc_id: doc_2024_archive.pdf"
+          },
+          {
+            "step_idx": 3,
+            "step_name": "allowance_extractor",
+            "step_type": "llm_call",
+            "description": "Extracted superseded $75 value from stale document chunk",
+            "variable_affected": "extracted_rate",
+            "state_diff": "rate: 75"
+          },
+          {
+            "step_idx": 4,
+            "step_name": "final_answer",
+            "step_type": "final_answer",
+            "description": "User presented with outdated per-diem allowance",
+            "variable_affected": "final_answer",
+            "state_diff": "FAILED"
+          }
+        ],
+        "final_impact": "Employee reimbursed at outdated 2024 rate ($75 vs $95)"
+      },
+      "healthy_reference": {
+        "step_idx": 2,
+        "expected_doc": "doc_2026_current.pdf",
+        "expected_rate": 95
+      },
+      "suggested_patch": "Add year filter {year: 2026} to vector search parameters"
+    }
+  },
+  "eval_results": {
+    "is_example": true,
+    "overall_metrics": [
+      {
+        "name": "Black Box (Model)",
+        "top_1": 0.842,
+        "top_3": 0.965,
+        "mean_rank": 1.28
+      },
+      {
+        "name": "First error flag",
+        "top_1": 0.524,
+        "top_3": 0.710,
+        "mean_rank": 2.45
+      },
+      {
+        "name": "Last step before final",
+        "top_1": 0.381,
+        "top_3": 0.620,
+        "mean_rank": 3.10
+      },
+      {
+        "name": "Slowest latency step",
+        "top_1": 0.295,
+        "top_3": 0.540,
+        "mean_rank": 3.85
+      },
+      {
+        "name": "Uniform random",
+        "top_1": 0.180,
+        "top_3": 0.420,
+        "mean_rank": 4.60
+      }
+    ],
+    "seen_vs_unseen": {
+      "seen_fault_types": {
+        "top_1": 0.891,
+        "top_3": 0.985,
+        "mean_rank": 1.15,
+        "n_samples": 420
+      },
+      "unseen_fault_types": {
+        "top_1": 0.745,
+        "top_3": 0.925,
+        "mean_rank": 1.54,
+        "n_samples": 180
+      }
+    },
+    "leave_one_template_out": [
+      {
+        "held_out_template": "price_compare",
+        "train_accuracy_top1": 0.875,
+        "test_accuracy_top1": 0.812,
+        "test_accuracy_top3": 0.950,
+        "n_test": 150
+      },
+      {
+        "held_out_template": "policy_lookup",
+        "train_accuracy_top1": 0.860,
+        "test_accuracy_top1": 0.835,
+        "test_accuracy_top3": 0.962,
+        "n_test": 150
+      },
+      {
+        "held_out_template": "sql_agent",
+        "train_accuracy_top1": 0.880,
+        "test_accuracy_top1": 0.795,
+        "test_accuracy_top3": 0.940,
+        "n_test": 150
+      },
+      {
+        "held_out_template": "customer_support",
+        "train_accuracy_top1": 0.855,
+        "test_accuracy_top1": 0.820,
+        "test_accuracy_top3": 0.958,
+        "n_test": 150
+      }
+    ],
+    "per_fault_type": [
+      {
+        "fault_type": "numeric_overflow",
+        "n_samples": 115,
+        "top_1": 0.913,
+        "top_3": 0.991,
+        "mean_rank": 1.09
+      },
+      {
+        "fault_type": "schema_inversion",
+        "n_samples": 128,
+        "top_1": 0.882,
+        "top_3": 0.976,
+        "mean_rank": 1.18
+      },
+      {
+        "fault_type": "hallucinated_id",
+        "n_samples": 134,
+        "top_1": 0.828,
+        "top_3": 0.955,
+        "mean_rank": 1.32
+      },
+      {
+        "fault_type": "stale_retrieval",
+        "n_samples": 120,
+        "top_1": 0.775,
+        "top_3": 0.933,
+        "mean_rank": 1.48
+      },
+      {
+        "fault_type": "prompt_injection_drift",
+        "n_samples": 103,
+        "top_1": 0.767,
+        "top_3": 0.922,
+        "mean_rank": 1.55
+      }
+    ],
+    "feature_importance": [
+      {
+        "feature": "state_entropy_delta",
+        "importance": 0.285,
+        "description": "Normalized divergence in state dictionary keys and scalar values after step execution"
+      },
+      {
+        "feature": "downstream_read_fanout",
+        "importance": 0.215,
+        "description": "Number of subsequent steps consuming outputs/state produced by this step"
+      },
+      {
+        "feature": "output_semantic_drift",
+        "importance": 0.182,
+        "description": "Cosine distance between step output embedding and prompt requirement embedding"
+      },
+      {
+        "feature": "error_flag_indicator",
+        "importance": 0.145,
+        "description": "Explicit runtime exception, warning flag, or non-zero status code"
+      },
+      {
+        "feature": "token_latency_ratio",
+        "importance": 0.103,
+        "description": "Abnormal latency per generated token relative to baseline profile"
+      },
+      {
+        "feature": "schema_type_mismatch",
+        "importance": 0.070,
+        "description": "Type contract violations in tool parameters or returned JSON payloads"
+      }
+    ],
+    "methodology": {
+      "split_strategy": "GroupKFold by agent template to prevent cross-template data leakage",
+      "fault_injection": "Randomized fault injection at depth indices 1..N-1 across synthetic and recorded real traces",
+      "label_validation": "Double-blind automated replay validation ensuring fault removal restores PASSED status",
+      "held_out_types": "20% of fault categories reserved strictly for unseen generalization testing",
+      "demo_isolation": "Demo seeds (run_0141..run_0145) strictly excluded from training and validation partitions"
+    }
+  }
+}
