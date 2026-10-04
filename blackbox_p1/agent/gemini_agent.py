@@ -131,13 +131,19 @@ class GeminiAgent:
         lineage = lineage or Lineage()
         patched_outputs = patched_outputs or {}
 
+        
         steps = deepcopy(reused_prefix or [])
         state: dict[str, Any] = deepcopy(initial_state or {})
         call_latencies: list[float] = []
 
-        # When a prefix is reused, its last checkpoint is the restart state.
+        # When a prefix is reused, restore its last checkpoint.
+        # initial_state may contain an intentional replay patch, so merge it
+        # over the checkpoint rather than discarding it.
         if steps:
-            state = deepcopy(steps[-1].state_after)
+            checkpoint_state = deepcopy(steps[-1].state_after)
+            checkpoint_state.update(state)
+            state = checkpoint_state
+
 
         if start_step <= 0 and len(steps) == 0:
             step0_prompt = f"""
@@ -220,12 +226,16 @@ Do not decide eligibility yet.
             started = time.perf_counter()
             out, raw = self.client.generate_json(parse_prompt)
             elapsed = (time.perf_counter() - started) * 1000
+
+            out = deepcopy(patched_outputs.get(2, out))
             try:
                 days = int(out["days"])
             except (KeyError, TypeError, ValueError) as exc:
-                raise ValueError(f"Parser response must contain integer days: {out}") from exc
+                raise ValueError(
+                    f"Parser response must contain integer days: {out}"
+                ) from exc
+
             state["refund_days"] = days
-            out = deepcopy(patched_outputs.get(2, out))
             steps.append(
                 make_step(
                     2,

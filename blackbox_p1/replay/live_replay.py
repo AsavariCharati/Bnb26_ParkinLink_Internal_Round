@@ -74,7 +74,7 @@ class LiveReplayEngine:
             forked_from_step=from_step,
             prefix_reused=len(prefix),
             steps_rerun=len(replayed.steps) - len(prefix),
-            cache_hits=len(prefix),
+            cache_hits=0,
             original_outcome=original.status,
             new_outcome=replayed.status,
             replay_mode="live",

@@ -19,7 +19,15 @@ def diff_runs(a: Run, b: Run) -> Diff:
         sb = b.steps[i] if i < len(b.steps) else None
         ao = sa.output if sa else None
         bo = sb.output if sb else None
-        same = sa is not None and sb is not None and _same(ao, bo)
+        ast = sa.state_after if sa else {}
+        bst = sb.state_after if sb else {}
+
+        same = (
+            sa is not None
+            and sb is not None
+            and _same(ao, bo)
+            and _same(ast, bst)
+        )
         if not same and first_divergence is None:
             first_divergence = i
         steps.append(
@@ -28,6 +36,8 @@ def diff_runs(a: Run, b: Run) -> Diff:
                 status="same" if same else "changed",
                 a_output=ao,
                 b_output=bo,
+                a_state=ast,
+                b_state=bst,
             )
         )
 
