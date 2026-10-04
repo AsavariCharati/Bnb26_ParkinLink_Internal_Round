@@ -1,235 +1,207 @@
 {
+  "test": "price",
+  "task_contract": {
+    "template": "price_compare_gst",
+    "task_seed": 9002,
+    "prompt": "Compare Laptop X and Laptop Y and tell me which one is cheaper.",
+    "expected_answer": "Laptop Y"
+  },
+  "patch_contract": {
+    "target": "output",
+    "value": {
+      "key": "laptop_x_price",
+      "value": 80000,
+      "source": "replay_patch"
+    }
+  },
   "original": {
-    "run_id": "llm_ce27dd1816c0",
+    "run_id": "llm_cade222a5a58",
     "task": {
-      "template": "policy_lookup",
-      "task_seed": 9001,
-      "prompt": "A customer purchased a laptop 10 days ago. Check the refund policy and decide whether they are eligible.",
-      "expected_answer": "Refund not eligible"
+      "template": "price_compare_gst",
+      "task_seed": 9002,
+      "prompt": "Compare Laptop X and Laptop Y and tell me which one is cheaper.",
+      "expected_answer": "Laptop Y"
     },
     "status": "failed",
-    "final_answer": "Refund eligible",
+    "final_answer": "Laptop X",
     "agent_kind": "llm",
     "steps": [
       {
         "step_idx": 0,
         "type": "plan",
         "name": "planner",
-        "prompt": "You are the planning stage of an observable AI agent.\nTask: A customer purchased a laptop 10 days ago. Check the refund policy and decide whether they are eligible.\nReturn JSON with exactly two fields: action and query.\nThe required action is search_docs and the query should ask for the 7-day refund policy.\nDo not make the final decision here.",
+        "prompt": "price_compare_gst stage=x seed=9002\nReturn JSON with exactly three fields: action, key, stage.\nUse action=lookup_db, key=laptop_x_price, stage=x.",
         "input": {
-          "prompt": "A customer purchased a laptop 10 days ago. Check the refund policy and decide whether they are eligible."
+          "prompt": "Compare Laptop X and Laptop Y and tell me which one is cheaper."
         },
         "output": {
-          "action": "search_docs",
-          "query": "7-day refund policy"
+          "action": "lookup_db",
+          "key": "laptop_x_price",
+          "stage": "x"
         },
         "error_flag": false,
         "error_msg": null,
-        "latency_ms": 1148,
-        "tokens": 100,
+        "latency_ms": 961,
+        "tokens": 50,
         "reads": [],
         "writes": [
           "next_action",
           "query"
         ],
         "state_after": {
-          "next_action": "search_docs",
-          "query": "7-day refund policy"
+          "next_action": "lookup_db",
+          "query": null
         },
         "pre_state_hash": "bf21a9e8fbc5a3846fb05b4fa0859e0917b2202f",
-        "cache_key": "f16f937780862caee33a1974abe364c39f3053bd"
+        "cache_key": "af236ffd96013f5de5b35c9edfb1e800d4da682b"
       },
       {
         "step_idx": 1,
-        "type": "retrieval",
-        "name": "search_docs",
+        "type": "tool_call",
+        "name": "lookup_db",
         "prompt": null,
         "input": {
-          "query": "refund within 7 days"
+          "key": "laptop_x_price"
         },
         "output": {
-          "query": "refund within 7 days",
-          "documents": [
-            {
-              "title": "Refund Policy",
-              "text": "Refunds are available within 30 days of purchase subject to the applicable conditions."
-            }
-          ],
-          "source": "injected_wrong_retrieval"
+          "key": "calculator_result",
+          "value": 60000,
+          "source": "wrong_tool"
         },
         "error_flag": false,
         "error_msg": null,
         "latency_ms": 8,
         "tokens": 0,
-        "reads": [
-          {
-            "step_idx": 0,
-            "key": "query"
-          }
-        ],
+        "reads": [],
         "writes": [
-          "retrieved_docs"
+          "laptop_x_price"
         ],
         "state_after": {
-          "next_action": "search_docs",
-          "query": "7-day refund policy",
-          "retrieved_docs": [
-            {
-              "title": "Refund Policy",
-              "text": "Refunds are available within 30 days of purchase subject to the applicable conditions."
-            }
-          ]
+          "next_action": "lookup_db",
+          "query": null,
+          "laptop_x_price": 60000
         },
-        "pre_state_hash": "0b5f0f89212901ee689d9778daf147f4d3638550",
-        "cache_key": "87ad78e7969008dd233b0f95bc2c67cb1b77a411"
+        "pre_state_hash": "0ef8f05b668e8ead04eb1441455ce90675b80885",
+        "cache_key": "8860e3604d93af5168d2db38d874b892f3535f5c"
       },
       {
         "step_idx": 2,
-        "type": "parse",
-        "name": "parser",
-        "prompt": "Extract the refund duration from the retrieved policy text.\nCustomer task: A customer purchased a laptop 10 days ago. Check the refund policy and decide whether they are eligible.\nRetrieved documents:\n[{\"title\": \"Refund Policy\", \"text\": \"Refunds are available within 30 days of purchase subject to the applicable conditions.\"}]\nReturn JSON with exactly one field: days (integer).\nDo not decide eligibility yet.",
+        "type": "tool_call",
+        "name": "lookup_db",
+        "prompt": null,
         "input": {
-          "documents": [
-            {
-              "title": "Refund Policy",
-              "text": "Refunds are available within 30 days of purchase subject to the applicable conditions."
-            }
-          ]
+          "key": "laptop_y_price"
         },
         "output": {
-          "days": 30
+          "key": "laptop_y_price",
+          "value": 70000
         },
         "error_flag": false,
         "error_msg": null,
-        "latency_ms": 891,
-        "tokens": 105,
-        "reads": [
-          {
-            "step_idx": 1,
-            "key": "retrieved_docs"
-          }
-        ],
+        "latency_ms": 8,
+        "tokens": 0,
+        "reads": [],
         "writes": [
-          "refund_days"
+          "laptop_y_price"
         ],
         "state_after": {
-          "next_action": "search_docs",
-          "query": "7-day refund policy",
-          "retrieved_docs": [
-            {
-              "title": "Refund Policy",
-              "text": "Refunds are available within 30 days of purchase subject to the applicable conditions."
-            }
-          ],
-          "refund_days": 30
+          "next_action": "lookup_db",
+          "query": null,
+          "laptop_x_price": 60000,
+          "laptop_y_price": 70000
         },
-        "pre_state_hash": "b78dc827cd9cd6a82783f2326471a7ba8e522f27",
-        "cache_key": "f3ec40fe9ef018697aab65193f6e5d7c56468f50"
+        "pre_state_hash": "9e586e16069dd1035e25da0a64d6dff278a36d26",
+        "cache_key": "73d7781b66823b3b6c59bf44cbfc83cc01e1599a"
       },
       {
         "step_idx": 3,
         "type": "llm_call",
         "name": "reasoner",
-        "prompt": "You are the decision stage of an AI agent.\nCustomer purchased the laptop 10 days ago.\nUse ONLY refund_days from the state below as the policy limit.\nState: {\"next_action\": \"search_docs\", \"query\": \"7-day refund policy\", \"retrieved_docs\": [{\"title\": \"Refund Policy\", \"text\": \"Refunds are available within 30 days of purchase subject to the applicable conditions.\"}], \"refund_days\": 30}\nReturn JSON with exactly two fields: refund_days and eligible.\neligible must be true only when 10 is less than or equal to refund_days.",
+        "prompt": "Determine cheaper laptop.\nState: {\"next_action\": \"lookup_db\", \"query\": null, \"laptop_x_price\": 60000, \"laptop_y_price\": 70000}\nReturn JSON with exactly three fields: cheaper, x_price, y_price.\ncheaper must be X or Y.",
         "input": {
           "state": {
-            "next_action": "search_docs",
-            "query": "7-day refund policy",
-            "retrieved_docs": [
-              {
-                "title": "Refund Policy",
-                "text": "Refunds are available within 30 days of purchase subject to the applicable conditions."
-              }
-            ],
-            "refund_days": 30
+            "next_action": "lookup_db",
+            "query": null,
+            "laptop_x_price": 60000,
+            "laptop_y_price": 70000
           }
         },
         "output": {
-          "refund_days": 30,
-          "eligible": true
+          "cheaper": "X",
+          "x_price": 60000,
+          "y_price": 70000
         },
         "error_flag": false,
         "error_msg": null,
-        "latency_ms": 824,
-        "tokens": 138,
+        "latency_ms": 844,
+        "tokens": 66,
         "reads": [
           {
+            "step_idx": 1,
+            "key": "laptop_x_price"
+          },
+          {
             "step_idx": 2,
-            "key": "refund_days"
+            "key": "laptop_y_price"
           }
         ],
         "writes": [
-          "eligible"
+          "cheaper"
         ],
         "state_after": {
-          "next_action": "search_docs",
-          "query": "7-day refund policy",
-          "retrieved_docs": [
-            {
-              "title": "Refund Policy",
-              "text": "Refunds are available within 30 days of purchase subject to the applicable conditions."
-            }
-          ],
-          "refund_days": 30,
-          "eligible": true
+          "next_action": "lookup_db",
+          "query": null,
+          "laptop_x_price": 60000,
+          "laptop_y_price": 70000,
+          "cheaper": "X"
         },
-        "pre_state_hash": "fea2a3c6bed9289c50c811dea952500faf1fc119",
-        "cache_key": "99ac0229a32eef6f2afd7afd86b9f9644a670006"
+        "pre_state_hash": "54b98623be7a99f5d121824824930cf98e84c558",
+        "cache_key": "3693bccc7e26149e396947b247b9c3db4e6b2b94"
       },
       {
         "step_idx": 4,
         "type": "final_answer",
         "name": "answer",
-        "prompt": "Return the final answer for the customer.\nEligibility state: {\"next_action\": \"search_docs\", \"query\": \"7-day refund policy\", \"retrieved_docs\": [{\"title\": \"Refund Policy\", \"text\": \"Refunds are available within 30 days of purchase subject to the applicable conditions.\"}], \"refund_days\": 30, \"eligible\": true}\nReturn JSON with exactly one field, answer.\nUse exactly one of these strings:\n- Refund eligible\n- Refund not eligible",
+        "prompt": "Return the final answer.\nState: {\"next_action\": \"lookup_db\", \"query\": null, \"laptop_x_price\": 60000, \"laptop_y_price\": 70000, \"cheaper\": \"X\"}\nReturn JSON with exactly one field: answer.\nUse exactly Laptop X or Laptop Y.",
         "input": {
           "state": {
-            "next_action": "search_docs",
-            "query": "7-day refund policy",
-            "retrieved_docs": [
-              {
-                "title": "Refund Policy",
-                "text": "Refunds are available within 30 days of purchase subject to the applicable conditions."
-              }
-            ],
-            "refund_days": 30,
-            "eligible": true
+            "next_action": "lookup_db",
+            "query": null,
+            "laptop_x_price": 60000,
+            "laptop_y_price": 70000,
+            "cheaper": "X"
           }
         },
         "output": {
-          "answer": "Refund eligible"
+          "answer": "Laptop X"
         },
         "error_flag": false,
         "error_msg": null,
-        "latency_ms": 764,
-        "tokens": 113,
+        "latency_ms": 788,
+        "tokens": 60,
         "reads": [
           {
             "step_idx": 3,
-            "key": "eligible"
+            "key": "cheaper"
           }
         ],
         "writes": [],
         "state_after": {
-          "next_action": "search_docs",
-          "query": "7-day refund policy",
-          "retrieved_docs": [
-            {
-              "title": "Refund Policy",
-              "text": "Refunds are available within 30 days of purchase subject to the applicable conditions."
-            }
-          ],
-          "refund_days": 30,
-          "eligible": true
+          "next_action": "lookup_db",
+          "query": null,
+          "laptop_x_price": 60000,
+          "laptop_y_price": 70000,
+          "cheaper": "X"
         },
-        "pre_state_hash": "34383db753f56722376bfd16418ec1a7774df788",
-        "cache_key": "e633e64e3a1c27ad97648162f06a2286d16c299c"
+        "pre_state_hash": "bb930c51d9c721c236dde4bbbb3127a2a8cda77b",
+        "cache_key": "3f844b521d738a446f850210fbd247946fd41fcd"
       }
     ],
     "fault": {
       "injected": true,
       "step_idx": 1,
-      "fault_type": "wrong_retrieval",
-      "description": "A plausible but incorrect refund-policy document is returned."
+      "fault_type": "wrong_tool",
+      "description": "The price lookup step returns an incorrect price/tool result for Laptop X."
     },
     "lineage": {
       "parent_run_id": null,
@@ -244,59 +216,59 @@
     }
   },
   "diagnosis": {
-    "run_id": "llm_ce27dd1816c0",
+    "run_id": "llm_cade222a5a58",
     "ranking": [
       {
         "step_idx": 1,
-        "blame_score": 0.03709036856889725,
-        "relative": 0.9520399570465088
-      },
-      {
-        "step_idx": 0,
-        "blame_score": 0.001112744095735252,
-        "relative": 0.028562046587467194
+        "blame_score": 0.04403841868042946,
+        "relative": 0.9532040953636169
       },
       {
         "step_idx": 3,
-        "blame_score": 0.00035964095150120556,
-        "relative": 0.009231306612491608
+        "blame_score": 0.001265409286133945,
+        "relative": 0.027389569208025932
       },
       {
         "step_idx": 2,
-        "blame_score": 0.00020036658679600805,
-        "relative": 0.005143033340573311
+        "blame_score": 0.0005145412287674844,
+        "relative": 0.011137157678604126
       },
       {
         "step_idx": 4,
         "blame_score": 0.00019571909797377884,
-        "relative": 0.0050237406976521015
+        "relative": 0.00423630652949214
+      },
+      {
+        "step_idx": 0,
+        "blame_score": 0.0001863200741354376,
+        "relative": 0.004032866097986698
       }
     ],
     "suspect_step_idx": 1,
-    "evidence": [],
+    "evidence": [
+      {
+        "feature": "output_deviation",
+        "value": "20.0%",
+        "typical": "near clean-run baseline"
+      }
+    ],
     "healthy_reference": {
-      "run_id": "run_02e0fac064ba",
+      "run_id": "run_003df321017b",
       "step_idx": 1,
       "output": {
-        "documents": [
-          {
-            "text": "Refunds are available within 7 days of purchase subject to the applicable conditions.",
-            "title": "Refund Policy"
-          }
-        ],
-        "query": "refund within 7 days"
+        "key": "laptop_x_price",
+        "value": 80000
       }
     },
     "causal_chain": [
       1,
-      2,
       3,
       4
     ]
   },
   "replay_checkpoint_source": "ml_suspect",
   "replay": {
-    "new_run_id": "llm_ce27dd1816c0_r0865f7_21990b692196",
+    "new_run_id": "llm_cade222a5a58_rc189e7_f74c5a7a0bd7",
     "forked_from_step": 1,
     "prefix_reused": 1,
     "steps_rerun": 4,
@@ -307,262 +279,209 @@
     "patch": {
       "target": "output",
       "value": {
-        "query": "refund within 7 days",
-        "documents": [
-          {
-            "title": "Refund Policy",
-            "text": "Refunds are available within 7 days of purchase subject to the applicable conditions."
-          }
-        ],
+        "key": "laptop_x_price",
+        "value": 80000,
         "source": "replay_patch"
       }
     }
   },
   "fixed_run": {
-    "run_id": "llm_ce27dd1816c0_r0865f7_21990b692196",
+    "run_id": "llm_cade222a5a58_rc189e7_f74c5a7a0bd7",
     "task": {
-      "template": "policy_lookup",
-      "task_seed": 9001,
-      "prompt": "A customer purchased a laptop 10 days ago. Check the refund policy and decide whether they are eligible.",
-      "expected_answer": "Refund not eligible"
+      "template": "price_compare_gst",
+      "task_seed": 9002,
+      "prompt": "Compare Laptop X and Laptop Y and tell me which one is cheaper.",
+      "expected_answer": "Laptop Y"
     },
     "status": "success",
-    "final_answer": "Refund not eligible",
+    "final_answer": "Laptop Y",
     "agent_kind": "llm",
     "steps": [
       {
         "step_idx": 0,
         "type": "plan",
         "name": "planner",
-        "prompt": "You are the planning stage of an observable AI agent.\nTask: A customer purchased a laptop 10 days ago. Check the refund policy and decide whether they are eligible.\nReturn JSON with exactly two fields: action and query.\nThe required action is search_docs and the query should ask for the 7-day refund policy.\nDo not make the final decision here.",
+        "prompt": "price_compare_gst stage=x seed=9002\nReturn JSON with exactly three fields: action, key, stage.\nUse action=lookup_db, key=laptop_x_price, stage=x.",
         "input": {
-          "prompt": "A customer purchased a laptop 10 days ago. Check the refund policy and decide whether they are eligible."
+          "prompt": "Compare Laptop X and Laptop Y and tell me which one is cheaper."
         },
         "output": {
-          "action": "search_docs",
-          "query": "7-day refund policy"
+          "action": "lookup_db",
+          "key": "laptop_x_price",
+          "stage": "x"
         },
         "error_flag": false,
         "error_msg": null,
-        "latency_ms": 1148,
-        "tokens": 100,
+        "latency_ms": 961,
+        "tokens": 50,
         "reads": [],
         "writes": [
           "next_action",
           "query"
         ],
         "state_after": {
-          "next_action": "search_docs",
-          "query": "7-day refund policy"
+          "next_action": "lookup_db",
+          "query": null
         },
         "pre_state_hash": "bf21a9e8fbc5a3846fb05b4fa0859e0917b2202f",
-        "cache_key": "f16f937780862caee33a1974abe364c39f3053bd"
+        "cache_key": "af236ffd96013f5de5b35c9edfb1e800d4da682b"
       },
       {
         "step_idx": 1,
-        "type": "retrieval",
-        "name": "search_docs",
+        "type": "tool_call",
+        "name": "lookup_db",
         "prompt": null,
         "input": {
-          "query": "refund within 7 days"
+          "key": "laptop_x_price"
         },
         "output": {
-          "query": "refund within 7 days",
-          "documents": [
-            {
-              "title": "Refund Policy",
-              "text": "Refunds are available within 7 days of purchase subject to the applicable conditions."
-            }
-          ],
+          "key": "laptop_x_price",
+          "value": 80000,
           "source": "replay_patch"
         },
         "error_flag": false,
         "error_msg": null,
         "latency_ms": 8,
         "tokens": 0,
-        "reads": [
-          {
-            "step_idx": 0,
-            "key": "query"
-          }
-        ],
+        "reads": [],
         "writes": [
-          "retrieved_docs"
+          "laptop_x_price"
         ],
         "state_after": {
-          "next_action": "search_docs",
-          "query": "7-day refund policy",
-          "retrieved_docs": [
-            {
-              "title": "Refund Policy",
-              "text": "Refunds are available within 7 days of purchase subject to the applicable conditions."
-            }
-          ]
+          "next_action": "lookup_db",
+          "query": null,
+          "laptop_x_price": 80000
         },
-        "pre_state_hash": "0b5f0f89212901ee689d9778daf147f4d3638550",
-        "cache_key": "87ad78e7969008dd233b0f95bc2c67cb1b77a411"
+        "pre_state_hash": "0ef8f05b668e8ead04eb1441455ce90675b80885",
+        "cache_key": "8860e3604d93af5168d2db38d874b892f3535f5c"
       },
       {
         "step_idx": 2,
-        "type": "parse",
-        "name": "parser",
-        "prompt": "Extract the refund duration from the retrieved policy text.\nCustomer task: A customer purchased a laptop 10 days ago. Check the refund policy and decide whether they are eligible.\nRetrieved documents:\n[{\"title\": \"Refund Policy\", \"text\": \"Refunds are available within 7 days of purchase subject to the applicable conditions.\"}]\nReturn JSON with exactly one field: days (integer).\nDo not decide eligibility yet.",
+        "type": "tool_call",
+        "name": "lookup_db",
+        "prompt": null,
         "input": {
-          "documents": [
-            {
-              "title": "Refund Policy",
-              "text": "Refunds are available within 7 days of purchase subject to the applicable conditions."
-            }
-          ]
+          "key": "laptop_y_price"
         },
         "output": {
-          "days": 7
+          "key": "laptop_y_price",
+          "value": 70000
         },
         "error_flag": false,
         "error_msg": null,
-        "latency_ms": 816,
-        "tokens": 105,
-        "reads": [
-          {
-            "step_idx": 1,
-            "key": "retrieved_docs"
-          }
-        ],
+        "latency_ms": 8,
+        "tokens": 0,
+        "reads": [],
         "writes": [
-          "refund_days"
+          "laptop_y_price"
         ],
         "state_after": {
-          "next_action": "search_docs",
-          "query": "7-day refund policy",
-          "retrieved_docs": [
-            {
-              "title": "Refund Policy",
-              "text": "Refunds are available within 7 days of purchase subject to the applicable conditions."
-            }
-          ],
-          "refund_days": 7
+          "next_action": "lookup_db",
+          "query": null,
+          "laptop_x_price": 80000,
+          "laptop_y_price": 70000
         },
-        "pre_state_hash": "b90dc20a5d05b8f8d7b9bf5109fce52123bc9aa3",
-        "cache_key": "71f219704a14c45f239c5f74afcf7d18fd37cffb"
+        "pre_state_hash": "e0a5ad3f48513f1db1522025c4fe1eca2396a9dc",
+        "cache_key": "84243cb9387979de97d700a4d8694c634a21ba86"
       },
       {
         "step_idx": 3,
         "type": "llm_call",
         "name": "reasoner",
-        "prompt": "You are the decision stage of an AI agent.\nCustomer purchased the laptop 10 days ago.\nUse ONLY refund_days from the state below as the policy limit.\nState: {\"next_action\": \"search_docs\", \"query\": \"7-day refund policy\", \"retrieved_docs\": [{\"title\": \"Refund Policy\", \"text\": \"Refunds are available within 7 days of purchase subject to the applicable conditions.\"}], \"refund_days\": 7}\nReturn JSON with exactly two fields: refund_days and eligible.\neligible must be true only when 10 is less than or equal to refund_days.",
+        "prompt": "Determine cheaper laptop.\nState: {\"next_action\": \"lookup_db\", \"query\": null, \"laptop_x_price\": 80000, \"laptop_y_price\": 70000}\nReturn JSON with exactly three fields: cheaper, x_price, y_price.\ncheaper must be X or Y.",
         "input": {
           "state": {
-            "next_action": "search_docs",
-            "query": "7-day refund policy",
-            "retrieved_docs": [
-              {
-                "title": "Refund Policy",
-                "text": "Refunds are available within 7 days of purchase subject to the applicable conditions."
-              }
-            ],
-            "refund_days": 7
+            "next_action": "lookup_db",
+            "query": null,
+            "laptop_x_price": 80000,
+            "laptop_y_price": 70000
           }
         },
         "output": {
-          "refund_days": 7,
-          "eligible": false
+          "cheaper": "Y",
+          "x_price": 80000,
+          "y_price": 70000
         },
         "error_flag": false,
         "error_msg": null,
-        "latency_ms": 775,
-        "tokens": 138,
+        "latency_ms": 890,
+        "tokens": 66,
         "reads": [
           {
+            "step_idx": 1,
+            "key": "laptop_x_price"
+          },
+          {
             "step_idx": 2,
-            "key": "refund_days"
+            "key": "laptop_y_price"
           }
         ],
         "writes": [
-          "eligible"
+          "cheaper"
         ],
         "state_after": {
-          "next_action": "search_docs",
-          "query": "7-day refund policy",
-          "retrieved_docs": [
-            {
-              "title": "Refund Policy",
-              "text": "Refunds are available within 7 days of purchase subject to the applicable conditions."
-            }
-          ],
-          "refund_days": 7,
-          "eligible": false
+          "next_action": "lookup_db",
+          "query": null,
+          "laptop_x_price": 80000,
+          "laptop_y_price": 70000,
+          "cheaper": "Y"
         },
-        "pre_state_hash": "c7eb1e13aa5f2f77f6da588074cb15cdd447ba62",
-        "cache_key": "7a4993ce5b9abb18e072bdffd4a840743d797a4c"
+        "pre_state_hash": "0ae8f164dcbce7f8da6b4b82cca0239a8b43f391",
+        "cache_key": "11c2dc5098a676e0736b5cde1107352db5d5baff"
       },
       {
         "step_idx": 4,
         "type": "final_answer",
         "name": "answer",
-        "prompt": "Return the final answer for the customer.\nEligibility state: {\"next_action\": \"search_docs\", \"query\": \"7-day refund policy\", \"retrieved_docs\": [{\"title\": \"Refund Policy\", \"text\": \"Refunds are available within 7 days of purchase subject to the applicable conditions.\"}], \"refund_days\": 7, \"eligible\": false}\nReturn JSON with exactly one field, answer.\nUse exactly one of these strings:\n- Refund eligible\n- Refund not eligible",
+        "prompt": "Return the final answer.\nState: {\"next_action\": \"lookup_db\", \"query\": null, \"laptop_x_price\": 80000, \"laptop_y_price\": 70000, \"cheaper\": \"Y\"}\nReturn JSON with exactly one field: answer.\nUse exactly Laptop X or Laptop Y.",
         "input": {
           "state": {
-            "next_action": "search_docs",
-            "query": "7-day refund policy",
-            "retrieved_docs": [
-              {
-                "title": "Refund Policy",
-                "text": "Refunds are available within 7 days of purchase subject to the applicable conditions."
-              }
-            ],
-            "refund_days": 7,
-            "eligible": false
+            "next_action": "lookup_db",
+            "query": null,
+            "laptop_x_price": 80000,
+            "laptop_y_price": 70000,
+            "cheaper": "Y"
           }
         },
         "output": {
-          "answer": "Refund not eligible"
+          "answer": "Laptop Y"
         },
         "error_flag": false,
         "error_msg": null,
-        "latency_ms": 764,
-        "tokens": 114,
+        "latency_ms": 757,
+        "tokens": 60,
         "reads": [
           {
             "step_idx": 3,
-            "key": "eligible"
+            "key": "cheaper"
           }
         ],
         "writes": [],
         "state_after": {
-          "next_action": "search_docs",
-          "query": "7-day refund policy",
-          "retrieved_docs": [
-            {
-              "title": "Refund Policy",
-              "text": "Refunds are available within 7 days of purchase subject to the applicable conditions."
-            }
-          ],
-          "refund_days": 7,
-          "eligible": false
+          "next_action": "lookup_db",
+          "query": null,
+          "laptop_x_price": 80000,
+          "laptop_y_price": 70000,
+          "cheaper": "Y"
         },
-        "pre_state_hash": "ebf3a8d17cef89a42acade06d429bf74d6405847",
-        "cache_key": "a445cefd0794c5019bbf988ae020b4502d6664d4"
+        "pre_state_hash": "531dbc32fc488a0f2683c90858ee3cf21aa5aa34",
+        "cache_key": "63f7a8a9f9cede80b1deab4e1a9889cf76370515"
       }
     ],
     "fault": {
       "injected": true,
       "step_idx": 1,
-      "fault_type": "wrong_retrieval",
-      "description": "A plausible but incorrect refund-policy document is returned."
+      "fault_type": "wrong_tool",
+      "description": "The price lookup step returns an incorrect price/tool result for Laptop X."
     },
     "lineage": {
-      "parent_run_id": "llm_ce27dd1816c0",
+      "parent_run_id": "llm_cade222a5a58",
       "forked_from_step": 1,
       "patch": {
         "target": "output",
         "value": {
-          "query": "refund within 7 days",
-          "documents": [
-            {
-              "title": "Refund Policy",
-              "text": "Refunds are available within 7 days of purchase subject to the applicable conditions."
-            }
-          ],
+          "key": "laptop_x_price",
+          "value": 80000,
           "source": "replay_patch"
         }
       }
@@ -575,8 +494,8 @@
     }
   },
   "diff": {
-    "a": "llm_ce27dd1816c0",
-    "b": "llm_ce27dd1816c0_r0865f7_21990b692196",
+    "a": "llm_cade222a5a58",
+    "b": "llm_cade222a5a58_rc189e7_f74c5a7a0bd7",
     "first_divergence": 1,
     "outcome": {
       "a": "failed",
@@ -587,74 +506,70 @@
         "idx": 0,
         "status": "same",
         "a_output": {
-          "action": "search_docs",
-          "query": "7-day refund policy"
+          "action": "lookup_db",
+          "key": "laptop_x_price",
+          "stage": "x"
         },
         "b_output": {
-          "action": "search_docs",
-          "query": "7-day refund policy"
+          "action": "lookup_db",
+          "key": "laptop_x_price",
+          "stage": "x"
         }
       },
       {
         "idx": 1,
         "status": "changed",
         "a_output": {
-          "query": "refund within 7 days",
-          "documents": [
-            {
-              "title": "Refund Policy",
-              "text": "Refunds are available within 30 days of purchase subject to the applicable conditions."
-            }
-          ],
-          "source": "injected_wrong_retrieval"
+          "key": "calculator_result",
+          "value": 60000,
+          "source": "wrong_tool"
         },
         "b_output": {
-          "query": "refund within 7 days",
-          "documents": [
-            {
-              "title": "Refund Policy",
-              "text": "Refunds are available within 7 days of purchase subject to the applicable conditions."
-            }
-          ],
+          "key": "laptop_x_price",
+          "value": 80000,
           "source": "replay_patch"
         }
       },
       {
         "idx": 2,
-        "status": "changed",
+        "status": "same",
         "a_output": {
-          "days": 30
+          "key": "laptop_y_price",
+          "value": 70000
         },
         "b_output": {
-          "days": 7
+          "key": "laptop_y_price",
+          "value": 70000
         }
       },
       {
         "idx": 3,
         "status": "changed",
         "a_output": {
-          "refund_days": 30,
-          "eligible": true
+          "cheaper": "X",
+          "x_price": 60000,
+          "y_price": 70000
         },
         "b_output": {
-          "refund_days": 7,
-          "eligible": false
+          "cheaper": "Y",
+          "x_price": 80000,
+          "y_price": 70000
         }
       },
       {
         "idx": 4,
         "status": "changed",
         "a_output": {
-          "answer": "Refund eligible"
+          "answer": "Laptop X"
         },
         "b_output": {
-          "answer": "Refund not eligible"
+          "answer": "Laptop Y"
         }
       }
     ]
   },
   "causal_check": {
-    "run_id": "llm_ce27dd1816c0",
+    "run_id": "llm_cade222a5a58",
     "trials": [
       {
         "step_idx": 1,
@@ -669,245 +584,203 @@
     ]
   },
   "unrelated_run": {
-    "run_id": "llm_ce27dd1816c0_rde36cc_51cb792841a7",
+    "run_id": "llm_cade222a5a58_r28cf37_f2dd315f8028",
     "task": {
-      "template": "policy_lookup",
-      "task_seed": 9001,
-      "prompt": "A customer purchased a laptop 10 days ago. Check the refund policy and decide whether they are eligible.",
-      "expected_answer": "Refund not eligible"
+      "template": "price_compare_gst",
+      "task_seed": 9002,
+      "prompt": "Compare Laptop X and Laptop Y and tell me which one is cheaper.",
+      "expected_answer": "Laptop Y"
     },
     "status": "failed",
-    "final_answer": "Refund eligible",
+    "final_answer": "Laptop X",
     "agent_kind": "llm",
     "steps": [
       {
         "step_idx": 0,
         "type": "plan",
         "name": "planner",
-        "prompt": "You are the planning stage of an observable AI agent.\nTask: A customer purchased a laptop 10 days ago. Check the refund policy and decide whether they are eligible.\nReturn JSON with exactly two fields: action and query.\nThe required action is search_docs and the query should ask for the 7-day refund policy.\nDo not make the final decision here.",
+        "prompt": "price_compare_gst stage=x seed=9002\nReturn JSON with exactly three fields: action, key, stage.\nUse action=lookup_db, key=laptop_x_price, stage=x.",
         "input": {
-          "prompt": "A customer purchased a laptop 10 days ago. Check the refund policy and decide whether they are eligible."
+          "prompt": "Compare Laptop X and Laptop Y and tell me which one is cheaper."
         },
         "output": {
-          "action": "search_docs",
-          "query": "7-day refund policy"
+          "action": "lookup_db",
+          "key": "laptop_x_price",
+          "stage": "x"
         },
         "error_flag": false,
         "error_msg": null,
-        "latency_ms": 782,
-        "tokens": 100,
+        "latency_ms": 794,
+        "tokens": 50,
         "reads": [],
         "writes": [
           "next_action",
           "query"
         ],
         "state_after": {
-          "next_action": "search_docs",
-          "query": "7-day refund policy"
+          "next_action": "lookup_db",
+          "query": null
         },
         "pre_state_hash": "bf21a9e8fbc5a3846fb05b4fa0859e0917b2202f",
-        "cache_key": "f16f937780862caee33a1974abe364c39f3053bd"
+        "cache_key": "af236ffd96013f5de5b35c9edfb1e800d4da682b"
       },
       {
         "step_idx": 1,
-        "type": "retrieval",
-        "name": "search_docs",
+        "type": "tool_call",
+        "name": "lookup_db",
         "prompt": null,
         "input": {
-          "query": "refund within 7 days"
+          "key": "laptop_x_price"
         },
         "output": {
-          "query": "refund within 7 days",
-          "documents": [
-            {
-              "title": "Refund Policy",
-              "text": "Refunds are available within 30 days of purchase subject to the applicable conditions."
-            }
-          ],
-          "source": "injected_wrong_retrieval"
+          "key": "calculator_result",
+          "value": 60000,
+          "source": "wrong_tool"
         },
         "error_flag": false,
         "error_msg": null,
         "latency_ms": 8,
         "tokens": 0,
-        "reads": [
-          {
-            "step_idx": 0,
-            "key": "query"
-          }
-        ],
+        "reads": [],
         "writes": [
-          "retrieved_docs"
+          "laptop_x_price"
         ],
         "state_after": {
-          "next_action": "search_docs",
-          "query": "7-day refund policy",
-          "retrieved_docs": [
-            {
-              "title": "Refund Policy",
-              "text": "Refunds are available within 30 days of purchase subject to the applicable conditions."
-            }
-          ]
+          "next_action": "lookup_db",
+          "query": null,
+          "laptop_x_price": 60000
         },
-        "pre_state_hash": "0b5f0f89212901ee689d9778daf147f4d3638550",
-        "cache_key": "87ad78e7969008dd233b0f95bc2c67cb1b77a411"
+        "pre_state_hash": "0ef8f05b668e8ead04eb1441455ce90675b80885",
+        "cache_key": "8860e3604d93af5168d2db38d874b892f3535f5c"
       },
       {
         "step_idx": 2,
-        "type": "parse",
-        "name": "parser",
-        "prompt": "Extract the refund duration from the retrieved policy text.\nCustomer task: A customer purchased a laptop 10 days ago. Check the refund policy and decide whether they are eligible.\nRetrieved documents:\n[{\"title\": \"Refund Policy\", \"text\": \"Refunds are available within 30 days of purchase subject to the applicable conditions.\"}]\nReturn JSON with exactly one field: days (integer).\nDo not decide eligibility yet.",
+        "type": "tool_call",
+        "name": "lookup_db",
+        "prompt": null,
         "input": {
-          "documents": [
-            {
-              "title": "Refund Policy",
-              "text": "Refunds are available within 30 days of purchase subject to the applicable conditions."
-            }
-          ]
+          "key": "laptop_y_price"
         },
         "output": {
-          "days": 30
+          "key": "laptop_y_price",
+          "value": 70000
         },
         "error_flag": false,
         "error_msg": null,
-        "latency_ms": 826,
-        "tokens": 105,
-        "reads": [
-          {
-            "step_idx": 1,
-            "key": "retrieved_docs"
-          }
-        ],
+        "latency_ms": 8,
+        "tokens": 0,
+        "reads": [],
         "writes": [
-          "refund_days"
+          "laptop_y_price"
         ],
         "state_after": {
-          "next_action": "search_docs",
-          "query": "7-day refund policy",
-          "retrieved_docs": [
-            {
-              "title": "Refund Policy",
-              "text": "Refunds are available within 30 days of purchase subject to the applicable conditions."
-            }
-          ],
-          "refund_days": 30
+          "next_action": "lookup_db",
+          "query": null,
+          "laptop_x_price": 60000,
+          "laptop_y_price": 70000
         },
-        "pre_state_hash": "b78dc827cd9cd6a82783f2326471a7ba8e522f27",
-        "cache_key": "f3ec40fe9ef018697aab65193f6e5d7c56468f50"
+        "pre_state_hash": "9e586e16069dd1035e25da0a64d6dff278a36d26",
+        "cache_key": "73d7781b66823b3b6c59bf44cbfc83cc01e1599a"
       },
       {
         "step_idx": 3,
         "type": "llm_call",
         "name": "reasoner",
-        "prompt": "You are the decision stage of an AI agent.\nCustomer purchased the laptop 10 days ago.\nUse ONLY refund_days from the state below as the policy limit.\nState: {\"next_action\": \"search_docs\", \"query\": \"7-day refund policy\", \"retrieved_docs\": [{\"title\": \"Refund Policy\", \"text\": \"Refunds are available within 30 days of purchase subject to the applicable conditions.\"}], \"refund_days\": 30}\nReturn JSON with exactly two fields: refund_days and eligible.\neligible must be true only when 10 is less than or equal to refund_days.",
+        "prompt": "Determine cheaper laptop.\nState: {\"next_action\": \"lookup_db\", \"query\": null, \"laptop_x_price\": 60000, \"laptop_y_price\": 70000}\nReturn JSON with exactly three fields: cheaper, x_price, y_price.\ncheaper must be X or Y.",
         "input": {
           "state": {
-            "next_action": "search_docs",
-            "query": "7-day refund policy",
-            "retrieved_docs": [
-              {
-                "title": "Refund Policy",
-                "text": "Refunds are available within 30 days of purchase subject to the applicable conditions."
-              }
-            ],
-            "refund_days": 30
+            "next_action": "lookup_db",
+            "query": null,
+            "laptop_x_price": 60000,
+            "laptop_y_price": 70000
           }
         },
         "output": {
-          "refund_days": 30,
-          "eligible": true
+          "cheaper": "X",
+          "x_price": 60000,
+          "y_price": 70000
         },
         "error_flag": false,
         "error_msg": null,
-        "latency_ms": 995,
-        "tokens": 138,
+        "latency_ms": 808,
+        "tokens": 66,
         "reads": [
           {
+            "step_idx": 1,
+            "key": "laptop_x_price"
+          },
+          {
             "step_idx": 2,
-            "key": "refund_days"
+            "key": "laptop_y_price"
           }
         ],
         "writes": [
-          "eligible"
+          "cheaper"
         ],
         "state_after": {
-          "next_action": "search_docs",
-          "query": "7-day refund policy",
-          "retrieved_docs": [
-            {
-              "title": "Refund Policy",
-              "text": "Refunds are available within 30 days of purchase subject to the applicable conditions."
-            }
-          ],
-          "refund_days": 30,
-          "eligible": true
+          "next_action": "lookup_db",
+          "query": null,
+          "laptop_x_price": 60000,
+          "laptop_y_price": 70000,
+          "cheaper": "X"
         },
-        "pre_state_hash": "fea2a3c6bed9289c50c811dea952500faf1fc119",
-        "cache_key": "99ac0229a32eef6f2afd7afd86b9f9644a670006"
+        "pre_state_hash": "54b98623be7a99f5d121824824930cf98e84c558",
+        "cache_key": "3693bccc7e26149e396947b247b9c3db4e6b2b94"
       },
       {
         "step_idx": 4,
         "type": "final_answer",
         "name": "answer",
-        "prompt": "Return the final answer for the customer.\nEligibility state: {\"next_action\": \"search_docs\", \"query\": \"7-day refund policy\", \"retrieved_docs\": [{\"title\": \"Refund Policy\", \"text\": \"Refunds are available within 30 days of purchase subject to the applicable conditions.\"}], \"refund_days\": 30, \"eligible\": true}\nReturn JSON with exactly one field, answer.\nUse exactly one of these strings:\n- Refund eligible\n- Refund not eligible",
+        "prompt": "Return the final answer.\nState: {\"next_action\": \"lookup_db\", \"query\": null, \"laptop_x_price\": 60000, \"laptop_y_price\": 70000, \"cheaper\": \"X\"}\nReturn JSON with exactly one field: answer.\nUse exactly Laptop X or Laptop Y.",
         "input": {
           "state": {
-            "next_action": "search_docs",
-            "query": "7-day refund policy",
-            "retrieved_docs": [
-              {
-                "title": "Refund Policy",
-                "text": "Refunds are available within 30 days of purchase subject to the applicable conditions."
-              }
-            ],
-            "refund_days": 30,
-            "eligible": true
+            "next_action": "lookup_db",
+            "query": null,
+            "laptop_x_price": 60000,
+            "laptop_y_price": 70000,
+            "cheaper": "X"
           }
         },
         "output": {
-          "answer": "Refund eligible"
+          "answer": "Laptop X"
         },
         "error_flag": false,
         "error_msg": null,
-        "latency_ms": 765,
-        "tokens": 113,
+        "latency_ms": 773,
+        "tokens": 60,
         "reads": [
           {
             "step_idx": 3,
-            "key": "eligible"
+            "key": "cheaper"
           }
         ],
         "writes": [],
         "state_after": {
-          "next_action": "search_docs",
-          "query": "7-day refund policy",
-          "retrieved_docs": [
-            {
-              "title": "Refund Policy",
-              "text": "Refunds are available within 30 days of purchase subject to the applicable conditions."
-            }
-          ],
-          "refund_days": 30,
-          "eligible": true
+          "next_action": "lookup_db",
+          "query": null,
+          "laptop_x_price": 60000,
+          "laptop_y_price": 70000,
+          "cheaper": "X"
         },
-        "pre_state_hash": "34383db753f56722376bfd16418ec1a7774df788",
-        "cache_key": "e633e64e3a1c27ad97648162f06a2286d16c299c"
+        "pre_state_hash": "bb930c51d9c721c236dde4bbbb3127a2a8cda77b",
+        "cache_key": "3f844b521d738a446f850210fbd247946fd41fcd"
       }
     ],
     "fault": {
       "injected": true,
       "step_idx": 1,
-      "fault_type": "wrong_retrieval",
-      "description": "A plausible but incorrect refund-policy document is returned."
+      "fault_type": "wrong_tool",
+      "description": "The price lookup step returns an incorrect price/tool result for Laptop X."
     },
     "lineage": {
-      "parent_run_id": "llm_ce27dd1816c0",
+      "parent_run_id": "llm_cade222a5a58",
       "forked_from_step": 0,
       "patch": {
         "target": "output",
         "value": {
-          "action": "search_docs",
-          "query": "7-day refund policy",
+          "action": "lookup_db",
+          "key": "laptop_x_price",
+          "stage": "x",
           "_blackbox_noop": true
         }
       }

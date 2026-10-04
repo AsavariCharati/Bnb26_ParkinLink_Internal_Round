@@ -1,0 +1,8 @@
+{
+  "target": "output",
+  "value": {
+    "key": "laptop_x_price",
+    "value": 80000,
+    "source": "replay_patch"
+  }
+}

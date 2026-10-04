@@ -1,0 +1,13 @@
+{
+  "test": "expense",
+  "fault_step": 3,
+  "fault_type": "corrupted_output",
+  "patch": {
+    "target": "output",
+    "value": {
+      "percentage_increase": 25,
+      "formula": "(150000-120000)/120000*100",
+      "source": "replay_patch"
+    }
+  }
+}

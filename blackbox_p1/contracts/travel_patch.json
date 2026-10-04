@@ -1,0 +1,12 @@
+{
+  "test": "travel",
+  "fault_step": 1,
+  "fault_type": "wrong_retrieval",
+  "patch": {
+    "target": "output",
+    "value": {
+      "flights": [],
+      "source": "replay_patch"
+    }
+  }
+}

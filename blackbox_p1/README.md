@@ -1,135 +1,60 @@
-# Black Box
+# Black Box P1
 
-Black Box is an AI-agent debugging system that records agent execution traces, identifies the step most likely responsible for a failure using XGBoost, and verifies the diagnosis through checkpoint replay and causal validation.
+P1 connects a real Gemini agent to the Black Box diagnosis/replay pipeline. Each scenario represents a different real-world agent task and a different failure location.
 
-## P0 — Controlled Benchmark
-
-P0 uses a deterministic agent with injected faults to train and evaluate the XGBoost diagnosis model.
-
-### Setup
+## Setup
 
 ```bash
 python -m venv venv
-```
-
-Activate the virtual environment.
-
-**Windows PowerShell:**
-```powershell
+# Windows PowerShell
 .\venv\Scripts\Activate.ps1
-```
-
-**Windows CMD:**
-```cmd
-venv\Scripts\activate
-```
-
-Install dependencies:
-
-```bash
 pip install -r requirements.txt
 ```
 
-### Generate Dataset
+Configure `.env`:
+
+```env
+GEMINI_API_KEY=YOUR_KEY
+GEMINI_MODEL=gemini-3.5-flash-lite
+P1_TEST=travel
+```
+
+## P0
 
 ```bash
 python -m scripts.generate_data
-```
-
-### Train XGBoost
-
-```bash
 python -m ml.train
-```
-
-### Evaluate
-
-```bash
 python -m ml.evaluate
 ```
 
-### Diagnose a Run
+## P1 scenarios
 
-```bash
-python -m ml.diagnose
-```
+For a faulty run, set `P1_TEST` and `P1_FAULT` to a supported pair.
 
----
-
-## P1 — Real Gemini Agent
-
-P1 connects the Black Box pipeline to a real Gemini-powered agent.
-
-Flow:
-
-```text
-Gemini Agent
-     ↓
-Execution Trace
-     ↓
-XGBoost Diagnosis
-     ↓
-Suspect Step
-     ↓
-Checkpoint Replay
-     ↓
-Repair
-     ↓
-Trace Diff
-     ↓
-Causal Validation
-```
-
-### Configure Gemini
-
-Create `.env` from `.env.example` and add:
-
+For a healthy run with no injected issue, use:
 ```env
-GEMINI_API_KEY=YOUR_API_KEY
-GEMINI_MODEL=gemini-3.5-flash-lite
+P1_TEST=travel
+P1_FAULT=none
 ```
+The healthy path should finish with `NO FAULT DETECTED` and skip replay/causal verification.
 
-### Check P1 Setup
-
-```bash
-python -m scripts.check_p1
-```
-
-### Run P1
+Then run:
 
 ```bash
 python -m scripts.run_p1
 ```
 
-The P1 demo shows a real Gemini failure being diagnosed by XGBoost, replayed from the suspected checkpoint, repaired, and verified through a failed → success outcome.
+Available scenarios:
 
----
+- `refund` — refund-policy agent; wrong retrieval at Step 1
+- `travel` — flight-search agent; stale search result at Step 1
+- `support` — damaged-order replacement agent; outdated policy at Step 2
+- `expense` — sales-analysis agent; corrupted calculation at Step 3
+
+Every run is saved separately under `data/p1_runs/`; old results are not overwritten.
 
 ## Tests
 
 ```bash
 pytest
 ```
-
-## Main Commands
-
-```bash
-# Setup
-python -m venv venv
-pip install -r requirements.txt
-
-# P0
-python -m scripts.generate_data
-python -m ml.train
-python -m ml.evaluate
-python -m ml.diagnose
-
-# P1
-python -m scripts.check_p1
-python -m scripts.run_p1
-
-# Tests
-pytest
-```
-
-> Run all commands from the project root with the virtual environment activated.

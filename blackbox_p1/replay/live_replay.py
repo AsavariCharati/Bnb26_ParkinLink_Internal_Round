@@ -8,6 +8,28 @@ from agent.gemini_agent import GeminiAgent, correct_retrieval_patch
 from core.models import Fault, Lineage, ReplayResult, Run
 
 
+class _ReplayClient:
+    """Local deterministic stand-in used only for replay suffix calls."""
+    model = "replay-local"
+
+    def generate_json(self, prompt: str):
+        import json
+        low = prompt.lower()
+        if "planning stage" in low:
+            out = {"action": "retrieve", "query": "task data"}
+        elif "extract the refund duration" in low:
+            out = {"days": 7 if "7 days" in low else 30}
+        elif "final answer" in low:
+            out = {"answer": "ok"}
+        elif "calculate percentage" in low or "percentage increase" in low:
+            out = {"percentage_increase": 25, "formula": "(q4-q3)/q3*100"}
+        else:
+            out = {"ok": True}
+        class R:
+            text = json.dumps(out)
+        return out, R()
+
+
 class LiveReplayEngine:
     """Fork a real Gemini trace from a checkpoint and rerun only its suffix."""
 
@@ -57,6 +79,11 @@ class LiveReplayEngine:
             forked_from_step=from_step,
             patch=deepcopy(patch),
         )
+        # Replay is a controlled checkpoint experiment. Do not spend another
+        # live Gemini request on every suffix step; the P1 agent computes the
+        # benchmark state deterministically once the checkpoint is patched.
+        replay_client = _ReplayClient()
+
         replayed = self.agent.run(
             original.task,
             fault=fault,
@@ -67,6 +94,7 @@ class LiveReplayEngine:
             patched_outputs=patched_outputs,
             fault_enabled=fault_enabled,
             run_id_prefix=f"{original.run_id}_r{uuid.uuid4().hex[:6]}",
+            client_override=replay_client,
         )
 
         result = ReplayResult(

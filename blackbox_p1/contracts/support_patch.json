@@ -1,0 +1,13 @@
+{
+  "test": "support",
+  "fault_step": 2,
+  "fault_type": "wrong_retrieval",
+  "patch": {
+    "target": "output",
+    "value": {
+      "window_days": 7,
+      "text": "Damaged items can be replaced within 7 days of delivery.",
+      "source": "replay_patch"
+    }
+  }
+}

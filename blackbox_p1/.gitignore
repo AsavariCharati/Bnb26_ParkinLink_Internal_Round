@@ -1,6 +1,8 @@
 __pycache__/
 *.pyc
 .venv/
+venv/
+.env
 data/model.pkl
 data/eval_results.json
-.env
+data/p1_runs/

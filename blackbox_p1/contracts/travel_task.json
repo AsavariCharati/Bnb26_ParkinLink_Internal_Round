@@ -1,0 +1,9 @@
+{
+  "test": "travel",
+  "task": {
+    "template": "flight_search",
+    "task_seed": 9101,
+    "prompt": "Find the best flight from Mumbai to Delhi tomorrow for under \u20b98,000. Prefer a nonstop flight when possible. Return the flight ID and price.",
+    "expected_answer": "AI-218"
+  }
+}

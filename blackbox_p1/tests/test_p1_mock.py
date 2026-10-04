@@ -39,3 +39,12 @@ def test_real_pipeline_shape_and_replay():
 
     diff = diff_runs(run, fixed)
     assert diff.first_divergence == 1
+
+def test_clean_run_has_no_fault_diagnosis():
+    agent = GeminiAgent(MockGeminiClient())
+    task = build_p1_task('travel')
+    run = agent.run(task, fault=Fault(injected=False))
+    assert run.status == 'success'
+    assert run.final_answer == task.expected_answer
+    # A clean run must not require a replay or causal repair.
+    assert run.fault.injected is False

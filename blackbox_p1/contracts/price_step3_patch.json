@@ -1,0 +1,9 @@
+{
+  "target": "output",
+  "value": {
+    "cheaper": "Y",
+    "x_price": 80000,
+    "y_price": 70000,
+    "source": "replay_patch"
+  }
+}

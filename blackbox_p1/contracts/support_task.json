@@ -1,0 +1,9 @@
+{
+  "test": "support",
+  "task": {
+    "template": "damaged_order_replacement",
+    "task_seed": 9102,
+    "prompt": "Order #4821 was delivered 10 days ago and arrived damaged. Check the replacement policy and decide whether the customer is eligible for a replacement.",
+    "expected_answer": "Replacement not eligible"
+  }
+}

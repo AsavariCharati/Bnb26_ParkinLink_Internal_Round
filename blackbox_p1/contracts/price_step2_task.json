@@ -1,0 +1,6 @@
+{
+  "template": "price_compare_gst",
+  "task_seed": 9102,
+  "prompt": "Compare Laptop X and Laptop Y and tell me which one is cheaper.",
+  "expected_answer": "Laptop Y"
+}

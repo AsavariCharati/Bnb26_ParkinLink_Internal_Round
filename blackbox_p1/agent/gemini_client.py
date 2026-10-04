@@ -51,7 +51,7 @@ class GeminiClient:
         return GeminiResponse(text=text, raw=response)
 
     def generate_json(self, prompt: str) -> tuple[dict[str, Any], GeminiResponse]:
-        """Ask Gemini for JSON and parse the returned object."""
+        """Ask Gemini for JSON and normalize object/list responses."""
         response = self.client.models.generate_content(
             model=self.model,
             contents=prompt,
@@ -87,6 +87,11 @@ def _parse_json_object(text: str) -> dict[str, Any]:
                 cleaned = "\n".join(lines[1:-1]).strip()
         value = json.loads(cleaned)
 
+    # Some valid Gemini responses naturally come back as a JSON array
+    # (for example, a list of qualifying flights). Black Box traces use
+    # object-shaped step outputs, so normalize arrays instead of crashing.
+    if isinstance(value, list):
+        return {"items": value}
     if not isinstance(value, dict):
-        raise ValueError(f"Expected a JSON object, got {type(value).__name__}.")
+        raise ValueError(f"Expected a JSON object or array, got {type(value).__name__}.")
     return value

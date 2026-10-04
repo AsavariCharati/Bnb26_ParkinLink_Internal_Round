@@ -1,0 +1,9 @@
+{
+  "test": "expense",
+  "task": {
+    "template": "sales_growth",
+    "task_seed": 9103,
+    "prompt": "Using the quarterly sales report, calculate the percentage increase in revenue from Q3 to Q4.",
+    "expected_answer": "25%"
+  }
+}
